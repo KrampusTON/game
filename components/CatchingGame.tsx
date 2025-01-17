@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image, { StaticImageData } from "next/image";
 import { useGameStore } from "@/utils/game-mechanics";
 import TopInfoSection from "@/components/TopInfoSection";
@@ -28,6 +28,7 @@ const objectImages: { [key: string]: StaticImageData } = {
 
 export default function CatchingGame({ currentView, setCurrentView }: CatchingGameProps) {
   const { incrementPoints } = useGameStore();
+  const [playerX, setPlayerX] = useState<number>(50);
   const [fallingObjects, setFallingObjects] = useState<FallingObject[]>([]);
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [score, setScore] = useState<number>(0);
@@ -36,13 +37,11 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const [spawnDelay, setSpawnDelay] = useState<number>(1000);
   const [gameState, setGameState] = useState<string>("menu");
 
-  const playerXRef = useRef<number>(50); // Ref pre presnú pozíciu platformy
-
   const handleMove = (e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
     const newX = (touch.clientX / window.innerWidth) * 100;
-    const clampedX = Math.max(10, Math.min(90, newX));
-    playerXRef.current = clampedX; // Aktualizácia ref hodnoty
+    setPlayerX(Math.max(10, Math.min(90, newX))); // Platforma má limity od 10 % do 90 %.
+    e.preventDefault();
   };
 
   const generateObjectType = (): string => {
@@ -105,8 +104,6 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.map((obj) => {
-        const playerX = playerXRef.current; // Presná pozícia platformy
-
         const caught =
           obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Pravý okraj platformy
           obj.x - objectSize / 2 <= playerX + platformWidth / 2 && // Ľavý okraj platformy
@@ -146,7 +143,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
         return obj;
       })
     );
-  }, [incrementPoints, gameOver]);
+  }, [playerX, incrementPoints, gameOver]);
 
   // Odstránenie objektov po animácii
   useEffect(() => {
@@ -216,7 +213,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             >
               <div
                 style={{
-                  left: `${playerXRef.current - platformWidth / 2}%`,
+                  left: `${playerX - platformWidth / 2}%`,
                   width: `${platformWidth}%`,
                   height: "20px",
                   backgroundColor: "white",
