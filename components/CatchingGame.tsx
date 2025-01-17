@@ -57,6 +57,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const platformBottom = 85; // Dolná hranica platformy
   const platformTop = 95; // Horná hranica platformy
 
+  // Generovanie nových objektov
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
@@ -76,20 +77,28 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
     return () => clearInterval(interval);
   }, [spawnDelay, gameState, gameOver]);
 
+  // Aktualizácia pozícií objektov
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
     const interval = setInterval(() => {
       setFallingObjects((prev) =>
         prev
-          .map((obj) => ({ ...obj, y: obj.isCaught ? obj.y : obj.y + fallingSpeed }))
-          .filter((obj) => obj.y <= 100 || obj.isCaught)
+          .map((obj) => {
+            if (obj.isCaught) {
+              // Zastav chytené objekty na platforme
+              return { ...obj, y: platformBottom };
+            }
+            return { ...obj, y: obj.y + fallingSpeed };
+          })
+          .filter((obj) => obj.y <= 100) // Odstráň objekty mimo obrazovky
       );
     }, 50);
 
     return () => clearInterval(interval);
   }, [fallingSpeed, gameState, gameOver]);
 
+  // Kontrola kolízie s platformou
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.map((obj) => {
@@ -134,6 +143,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
     );
   }, [playerX, incrementPoints, gameOver]);
 
+  // Časovač hry
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
@@ -184,14 +194,14 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             >
               <div
                 style={{
-                  left: `${playerX - platformWidth / 2}%`, // Zarovnaj platformu na stred
+                  left: `${playerX - platformWidth / 2}%`,
                   width: `${platformWidth}%`,
                   height: "20px",
                   backgroundColor: "white",
                   transform: "translateX(0)",
                   bottom: "25%",
                   position: "absolute",
-                  border: "2px solid red", // Zvýrazni hranice platformy
+                  border: "2px solid red",
                 }}
                 className="platform"
               />
@@ -206,9 +216,11 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                     position: "absolute",
                     left: `${obj.x}%`,
                     top: `${obj.y}%`,
-                    opacity: obj.isCaught ? 0 : 1, // Skryjeme objekt, ak je chytený
-                    transform: obj.isCaught ? "scale(0)" : "scale(1)", // Objekt sa zmenší pri zmiznutí
-                    transition: obj.isCaught ? "transform 0.3s ease-out, opacity 0.3s ease-out" : "none",
+                    opacity: obj.isCaught ? 0 : 1,
+                    transform: obj.isCaught ? "scale(0)" : "scale(1)",
+                    transition: obj.isCaught
+                      ? "transform 0.3s ease-out, opacity 0.3s ease-out"
+                      : "none",
                   }}
                 />
               ))}
@@ -240,4 +252,4 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
       </div>
     </div>
   );
-      }
+}
