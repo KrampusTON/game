@@ -10,6 +10,7 @@ interface FallingObject {
   y: number;
   type: string;
   isCaught: boolean;
+  isRemoved: boolean; // Nový stav pre odstránenie po animácii
 }
 
 interface CatchingGameProps {
@@ -70,6 +71,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           y: 0,
           type: generateObjectType(),
           isCaught: false,
+          isRemoved: false,
         },
       ]);
     }, spawnDelay);
@@ -91,7 +93,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             }
             return { ...obj, y: obj.y + fallingSpeed };
           })
-          .filter((obj) => !obj.isCaught || obj.y <= 100) // Odstráň chytené objekty a tie mimo obrazovky
+          .filter((obj) => !obj.isRemoved && obj.y <= 100) // Odstráň chytené objekty po animácii
       );
     }, 50);
 
@@ -117,10 +119,10 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               pointsToAdd = -15;
               break;
             case "rare":
-              pointsToAdd = 20;
+              pointsToAdd = 25;
               break;
             case "blue":
-              pointsToAdd = 30;
+              pointsToAdd = 50;
               break;
             case "orange":
               setGameOver(true);
@@ -136,12 +138,29 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           }
 
           // Objekt zastavíme na platforme a označíme ako chytený
-          return { ...obj, isCaught: true, y: platformBottom };
+          return { ...obj, isCaught: true };
         }
         return obj;
       })
     );
   }, [playerX, incrementPoints, gameOver]);
+
+  // Odstránenie objektov po animácii
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFallingObjects((prev) =>
+        prev.map((obj) => {
+          if (obj.isCaught && !obj.isRemoved) {
+            // Odstrániť objekt po animácii
+            return { ...obj, isRemoved: true };
+          }
+          return obj;
+        })
+      );
+    }, 300); // Po animácii 300 ms
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Časovač hry
   useEffect(() => {
