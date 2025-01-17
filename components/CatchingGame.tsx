@@ -33,7 +33,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const [score, setScore] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<number>(60);
   const [fallingSpeed, setFallingSpeed] = useState<number>(2);
-  const [spawnDelay, setSpawnDelay] = useState<number>(1200);
+  const [spawnDelay, setSpawnDelay] = useState<number>(1000); // Znížený spawn delay pre viac objektov
   const [gameState, setGameState] = useState<string>("menu");
 
   const handleMove = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -43,25 +43,28 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
     e.preventDefault();
   };
 
+  const generateObjectType = (): string => {
+    const randomType = Math.random();
+    if (randomType < 0.2) return "bomb"; // 20% šanca
+    if (randomType < 0.35) return "rare"; // 15% šanca
+    if (randomType < 0.45) return "blue"; // 10% šanca
+    if (randomType < 0.55) return "orange"; // 10% šanca na "game over"
+    return "default"; // 45% šanca
+  };
+
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
     const interval = setInterval(() => {
-      const randomType = Math.random();
-      const type =
-        randomType < 0.25
-          ? "bomb"
-          : randomType < 0.35
-          ? "rare"
-          : randomType < 0.37
-          ? "blue"
-          : randomType < 0.39
-          ? "orange"
-          : "default";
-
       setFallingObjects((prev) => [
         ...prev,
-        { id: Date.now(), x: Math.random() * 100, y: 0, type, isCaught: false },
+        {
+          id: Date.now(),
+          x: Math.random() * 100,
+          y: 0,
+          type: generateObjectType(),
+          isCaught: false,
+        },
       ]);
     }, spawnDelay);
 
@@ -75,7 +78,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
       setFallingObjects((prev) =>
         prev
           .map((obj) => ({ ...obj, y: obj.isCaught ? obj.y : obj.y + fallingSpeed }))
-          .filter((obj) => obj.y <= 100 || obj.isCaught)
+          .filter((obj) => obj.y <= 100 || obj.isCaught) // Odstránenie objektov, ktoré prešli hranicu
       );
     }, 50);
 
@@ -89,25 +92,30 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
         if (caught) {
           let pointsToAdd = 0;
 
-          if (obj.type === "bomb") {
-            pointsToAdd = -15;
-          } else if (obj.type === "rare") {
-            pointsToAdd = 25;
-          } else if (obj.type === "blue") {
-            pointsToAdd = 50;
-          } else if (obj.type === "orange") {
-            setGameOver(true);
-            setGameState("gameOver");
-          } else {
-            pointsToAdd = 10;
+          switch (obj.type) {
+            case "bomb":
+              pointsToAdd = -15;
+              break;
+            case "rare":
+              pointsToAdd = 25;
+              break;
+            case "blue":
+              pointsToAdd = 50;
+              break;
+            case "orange":
+              setGameOver(true);
+              setGameState("gameOver");
+              break;
+            default:
+              pointsToAdd = 10;
           }
 
           if (!gameOver) {
-            setScore((prev) => prev + pointsToAdd);
+            setScore((prevScore) => prevScore + pointsToAdd);
             incrementPoints(pointsToAdd);
           }
 
-          return { ...obj, isCaught: true };
+          return { ...obj, isCaught: true }; // Označíme objekt ako chytený
         }
         return obj;
       })
@@ -129,7 +137,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
 
       if (timeLeft % 5 === 0) {
         setFallingSpeed((prev) => Math.min(prev + 0.5, 10));
-        setSpawnDelay((prev) => Math.max(prev - 50, 800));
+        setSpawnDelay((prev) => Math.max(prev - 50, 500)); // Zníženie spawn delay pre vyššiu frekvenciu
       }
     }, 1000);
 
@@ -201,7 +209,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                 setTimeLeft(60);
                 setGameOver(false);
                 setFallingSpeed(2);
-                setSpawnDelay(1200);
+                setSpawnDelay(1000);
                 setFallingObjects([]);
               }}
             >
