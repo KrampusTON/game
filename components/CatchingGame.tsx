@@ -33,7 +33,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const [score, setScore] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<number>(60);
   const [fallingSpeed, setFallingSpeed] = useState<number>(2);
-  const [spawnDelay, setSpawnDelay] = useState<number>(1000); // Znížený spawn delay pre viac objektov
+  const [spawnDelay, setSpawnDelay] = useState<number>(1000);
   const [gameState, setGameState] = useState<string>("menu");
 
   const handleMove = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -45,11 +45,11 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
 
   const generateObjectType = (): string => {
     const randomType = Math.random();
-    if (randomType < 0.2) return "bomb"; // 20% šanca
-    if (randomType < 0.35) return "rare"; // 15% šanca
-    if (randomType < 0.45) return "blue"; // 10% šanca
-    if (randomType < 0.55) return "orange"; // 10% šanca na "game over"
-    return "default"; // 45% šanca
+    if (randomType < 0.2) return "bomb";
+    if (randomType < 0.35) return "rare";
+    if (randomType < 0.45) return "blue";
+    if (randomType < 0.55) return "orange";
+    return "default";
   };
 
   useEffect(() => {
@@ -78,7 +78,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
       setFallingObjects((prev) =>
         prev
           .map((obj) => ({ ...obj, y: obj.isCaught ? obj.y : obj.y + fallingSpeed }))
-          .filter((obj) => obj.y <= 100 || obj.isCaught) // Odstránenie objektov, ktoré prešli hranicu
+          .filter((obj) => obj.y <= 100 || obj.isCaught)
       );
     }, 50);
 
@@ -88,7 +88,17 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.map((obj) => {
-        const caught = Math.abs(obj.x - playerX) < 20 && obj.y > 85 && obj.y <= 95 && !obj.isCaught;
+        const platformWidth = 20; // Šírka platformy v percentách
+        const platformBottom = 85; // Dolná hranica platformy
+        const platformTop = 95; // Horná hranica platformy
+
+        const caught =
+          obj.x >= playerX - platformWidth / 2 &&
+          obj.x <= playerX + platformWidth / 2 &&
+          obj.y > platformBottom &&
+          obj.y <= platformTop &&
+          !obj.isCaught;
+
         if (caught) {
           let pointsToAdd = 0;
 
@@ -115,7 +125,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             incrementPoints(pointsToAdd);
           }
 
-          return { ...obj, isCaught: true }; // Označíme objekt ako chytený
+          return { ...obj, isCaught: true };
         }
         return obj;
       })
@@ -137,7 +147,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
 
       if (timeLeft % 5 === 0) {
         setFallingSpeed((prev) => Math.min(prev + 0.5, 10));
-        setSpawnDelay((prev) => Math.max(prev - 50, 500)); // Zníženie spawn delay pre vyššiu frekvenciu
+        setSpawnDelay((prev) => Math.max(prev - 50, 500));
       }
     }, 1000);
 
@@ -146,43 +156,44 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
 
   return (
     <div
-  className="bg-black flex justify-center items-center min-h-screen overflow-hidden fixed inset-0"
-  style={{ touchAction: "none" }} // Zabraňuje posúvaniu stránky
->
-  <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl relative">
-    <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
-        {gameState === "menu" && (
-          <div className="flex flex-col items-center justify-center h-full">
-            <h1 className="text-3xl mb-4">Vitajte v hre!</h1>
-            <button
-              className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
-              onClick={() => setGameState("playing")}
-            >
-              Play
-            </button>
-          </div>
-        )}
-        {gameState === "playing" && (
-          <div
-            className="flex-grow bg-black z-0 relative overflow-hidden"
-            onTouchStart={handleMove}
-            onTouchMove={handleMove}
-          >
+      className="fixed inset-0 bg-black overflow-hidden"
+      style={{ touchAction: "none" }}
+    >
+      <div className="w-full h-full flex justify-center items-center">
+        <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl relative">
+          <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
+          {gameState === "menu" && (
+            <div className="flex flex-col items-center justify-center h-full">
+              <h1 className="text-3xl mb-4">Vitajte v hre!</h1>
+              <button
+                className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
+                onClick={() => setGameState("playing")}
+              >
+                Play
+              </button>
+            </div>
+          )}
+          {gameState === "playing" && (
             <div
-              style={{
-                left: `${playerX}%`,
-                width: "20%",
-                height: "20px",
-                backgroundColor: "white",
-                transform: "translateX(-50%)",
-                bottom: "25%",
-                position: "absolute",
-                borderRadius: "10px",
-              }}
-              className="platform"
-            />
-            {fallingObjects.map((obj) => (
-              <Image
+              className="flex-grow bg-black z-0 relative overflow-hidden"
+              onTouchStart={handleMove}
+              onTouchMove={handleMove}
+            >
+              <div
+                style={{
+                  left: `${playerX}%`,
+                  width: "20%",
+                  height: "20px",
+                  backgroundColor: "white",
+                  transform: "translateX(-50%)",
+                  bottom: "25%",
+                  position: "absolute",
+                  borderRadius: "10px",
+                }}
+                className="platform"
+              />
+              {fallingObjects.map((obj) => (
+                <Image
                 key={obj.id}
                 src={objectImages[obj.type] || objectImages.default}
                 alt={obj.type}
@@ -192,35 +203,37 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                   position: "absolute",
                   left: `${obj.x}%`,
                   top: `${obj.y}%`,
+                  opacity: obj.isCaught ? 0 : 1, // Skryjeme objekt, ak je zachytený
                   transform: obj.isCaught ? "scale(0)" : "scale(1)",
-                  transition: obj.isCaught ? "transform 0.3s ease-out" : "none",
+                  transition: obj.isCaught ? "transform 0.3s ease-out, opacity 0.3s ease-out" : "none",
                 }}
               />
-            ))}
-            <div className="absolute top-4 left-4 text-xl">{`Čas: ${timeLeft}s`}</div>
-            <div className="absolute top-4 right-4 text-xl">{`Skóre: ${score}`}</div>
-          </div>
-        )}
-        {gameState === "gameOver" && (
-          <div className="flex flex-col items-center justify-center h-full">
-            <h1 className="text-3xl mb-4">Hra skončila!</h1>
-            <p className="text-xl mb-4">{`Vaše skóre: ${score}`}</p>
-            <button
-              className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
-              onClick={() => {
-                setGameState("menu");
-                setScore(0);
-                setTimeLeft(60);
-                setGameOver(false);
-                setFallingSpeed(2);
-                setSpawnDelay(1000);
-                setFallingObjects([]);
-              }}
-            >
-              Znova hrať
-            </button>
-          </div>
-        )}
+              ))}
+              <div className="absolute top-4 left-4 text-xl">{`Čas: ${timeLeft}s`}</div>
+              <div className="absolute top-4 right-4 text-xl">{`Skóre: ${score}`}</div>
+            </div>
+          )}
+          {gameState === "gameOver" && (
+            <div className="flex flex-col items-center justify-center h-full">
+              <h1 className="text-3xl mb-4">Hra skončila!</h1>
+              <p className="text-xl mb-4">{`Vaše skóre: ${score}`}</p>
+              <button
+                className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
+                onClick={() => {
+                  setGameState("menu");
+                  setScore(0);
+                  setTimeLeft(60);
+                  setGameOver(false);
+                  setFallingSpeed(2);
+                  setSpawnDelay(1000);
+                  setFallingObjects([]);
+                }}
+              >
+                Znova hrať
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
