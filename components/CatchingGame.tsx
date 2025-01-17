@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import Image from "next/image"; // Import Image pre Next.js
+import Image, { StaticImageData } from "next/image";
 import { useGameStore } from "@/utils/game-mechanics";
 import TopInfoSection from "@/components/TopInfoSection";
-import { bomb, rare, blue, orange, coin } from "@/images"; // Import konkrétnych obrázkov
+import { bomb, rare, blue, orange, coin } from "@/images";
 
 interface FallingObject {
   id: number;
@@ -17,18 +17,13 @@ interface CatchingGameProps {
   setCurrentView: (view: string) => void;
 }
 
-const objectImages: { [key: string]: string } = {
+const objectImages: { [key: string]: StaticImageData } = {
   bomb,
   rare,
   blue,
   orange,
   default: coin,
 };
-
-interface CatchingGameProps {
-  currentView: string;
-  setCurrentView: (view: string) => void;
-}
 
 export default function CatchingGame({ currentView, setCurrentView }: CatchingGameProps) {
   const { incrementPoints } = useGameStore();
