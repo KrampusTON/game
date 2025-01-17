@@ -52,6 +52,11 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
     return "default";
   };
 
+  const objectSize = 4.5; // Veľkosť objektu v percentách
+  const platformWidth = 20; // Šírka platformy v percentách
+  const platformBottom = 85; // Dolná hranica platformy
+  const platformTop = 95; // Horná hranica platformy
+
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
@@ -88,15 +93,11 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.map((obj) => {
-        const platformWidth = 20; // Šírka platformy v percentách
-        const platformBottom = 85; // Dolná hranica platformy
-        const platformTop = 95; // Horná hranica platformy
-
         const caught =
-          obj.x >= playerX - platformWidth / 2 &&
-          obj.x <= playerX + platformWidth / 2 &&
-          obj.y > platformBottom &&
-          obj.y <= platformTop &&
+          obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Pravý okraj objektu
+          obj.x - objectSize / 2 <= playerX + platformWidth / 2 && // Ľavý okraj objektu
+          obj.y + objectSize / 2 > platformBottom && // Spodný okraj objektu
+          obj.y - objectSize / 2 <= platformTop && // Horný okraj objektu
           !obj.isCaught;
 
         if (caught) {
@@ -164,13 +165,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
           {gameState === "menu" && (
             <div className="flex flex-col items-center justify-center h-full">
-              <Image
-                src={rare}
-                alt="Logo"
-                width={200} // Nastaviteľná šírka
-                height={200} // Nastaviteľná výška
-                className="mb-4"
-              />
+              <Image src={rare} alt="Logo" width={200} height={200} className="mb-4" />
               <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
               <button
                 className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
@@ -201,20 +196,20 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               />
               {fallingObjects.map((obj) => (
                 <Image
-                key={obj.id}
-                src={objectImages[obj.type] || objectImages.default}
-                alt={obj.type}
-                width={45}
-                height={45}
-                style={{
-                  position: "absolute",
-                  left: `${obj.x}%`,
-                  top: `${obj.y}%`,
-                  opacity: obj.isCaught ? 0 : 1, // Skryjeme objekt, ak je zachytený
-                  transform: obj.isCaught ? "scale(0)" : "scale(1)",
-                  transition: obj.isCaught ? "transform 0.3s ease-out, opacity 0.3s ease-out" : "none",
-                }}
-              />
+                  key={obj.id}
+                  src={objectImages[obj.type] || objectImages.default}
+                  alt={obj.type}
+                  width={45}
+                  height={45}
+                  style={{
+                    position: "absolute",
+                    left: `${obj.x}%`,
+                    top: `${obj.y}%`,
+                    opacity: obj.isCaught ? 0 : 1,
+                    transform: obj.isCaught ? "scale(0)" : "scale(1)",
+                    transition: obj.isCaught ? "transform 0.3s ease-out, opacity 0.3s ease-out" : "none",
+                  }}
+                />
               ))}
               <div className="absolute top-4 left-4 text-xl">{`Time: ${timeLeft}s`}</div>
               <div className="absolute top-4 right-4 text-xl">{`Score: ${score}`}</div>
