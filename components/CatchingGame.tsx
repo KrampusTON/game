@@ -164,7 +164,14 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
           {gameState === "menu" && (
             <div className="flex flex-col items-center justify-center h-full">
-              <h1 className="text-3xl mb-4">Vitajte v hre!</h1>
+              <Image
+                src={rare}
+                alt="Logo"
+                width={200} // Nastaviteľná šírka
+                height={200} // Nastaviteľná výška
+                className="mb-4"
+              />
+              <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
               <button
                 className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
                 onClick={() => setGameState("playing")}
@@ -209,13 +216,13 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                 }}
               />
               ))}
-              <div className="absolute top-4 left-4 text-xl">{`Čas: ${timeLeft}s`}</div>
-              <div className="absolute top-4 right-4 text-xl">{`Skóre: ${score}`}</div>
+              <div className="absolute top-4 left-4 text-xl">{`Time: ${timeLeft}s`}</div>
+              <div className="absolute top-4 right-4 text-xl">{`Score: ${score}`}</div>
             </div>
           )}
           {gameState === "gameOver" && (
             <div className="flex flex-col items-center justify-center h-full">
-              <h1 className="text-3xl mb-4">Hra skončila!</h1>
+              <h1 className="text-3xl mb-4">Game Over!</h1>
               <p className="text-xl mb-4">{`Vaše skóre: ${score}`}</p>
               <button
                 className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
@@ -229,7 +236,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                   setFallingObjects([]);
                 }}
               >
-                Znova hrať
+                Play again
               </button>
             </div>
           )}
