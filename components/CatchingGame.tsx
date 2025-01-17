@@ -10,7 +10,6 @@ interface FallingObject {
   y: number;
   type: string;
   isCaught: boolean;
-  isRemoved: boolean; // Nový stav pre odstránenie po animácii
 }
 
 interface CatchingGameProps {
@@ -58,7 +57,6 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const platformBottom = 85; // Dolná hranica platformy
   const platformTop = 95; // Horná hranica platformy
 
-  // Generovanie nových objektov
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
@@ -71,7 +69,6 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           y: 0,
           type: generateObjectType(),
           isCaught: false,
-          isRemoved: false,
         },
       ]);
     }, spawnDelay);
@@ -79,28 +76,20 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
     return () => clearInterval(interval);
   }, [spawnDelay, gameState, gameOver]);
 
-  // Aktualizácia pozícií objektov
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
     const interval = setInterval(() => {
       setFallingObjects((prev) =>
         prev
-          .map((obj) => {
-            if (obj.isCaught) {
-              // Zastav chytené objekty na platforme
-              return { ...obj, y: platformBottom };
-            }
-            return { ...obj, y: obj.y + fallingSpeed };
-          })
-          .filter((obj) => !obj.isRemoved && obj.y <= 100) // Odstráň chytené objekty po animácii
+          .map((obj) => ({ ...obj, y: obj.isCaught ? obj.y : obj.y + fallingSpeed }))
+          .filter((obj) => obj.y <= 100 || obj.isCaught)
       );
     }, 50);
 
     return () => clearInterval(interval);
   }, [fallingSpeed, gameState, gameOver]);
 
-  // Kontrola kolízie s platformou
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.map((obj) => {
@@ -137,7 +126,6 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             incrementPoints(pointsToAdd);
           }
 
-          // Objekt zastavíme na platforme a označíme ako chytený
           return { ...obj, isCaught: true };
         }
         return obj;
@@ -145,24 +133,6 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
     );
   }, [playerX, incrementPoints, gameOver]);
 
-  // Odstránenie objektov po animácii
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setFallingObjects((prev) =>
-        prev.map((obj) => {
-          if (obj.isCaught && !obj.isRemoved) {
-            // Odstrániť objekt po animácii
-            return { ...obj, isRemoved: true };
-          }
-          return obj;
-        })
-      );
-    }, 300); // Po animácii 300 ms
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Časovač hry
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
@@ -213,14 +183,14 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             >
               <div
                 style={{
-                  left: `${playerX - platformWidth / 2}%`,
+                  left: `${playerX - platformWidth / 2}%`, // Zarovnaj platformu na stred
                   width: `${platformWidth}%`,
                   height: "20px",
                   backgroundColor: "white",
                   transform: "translateX(0)",
                   bottom: "25%",
                   position: "absolute",
-                  border: "2px solid red",
+                  border: "2px solid red", // Zvýrazni hranice platformy
                 }}
                 className="platform"
               />
@@ -237,9 +207,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                     top: `${obj.y}%`,
                     opacity: obj.isCaught ? 0 : 1,
                     transform: obj.isCaught ? "scale(0)" : "scale(1)",
-                    transition: obj.isCaught
-                      ? "transform 0.3s ease-out, opacity 0.3s ease-out"
-                      : "none",
+                    transition: obj.isCaught ? "transform 0.3s ease-out, opacity 0.3s ease-out" : "none",
                   }}
                 />
               ))}
