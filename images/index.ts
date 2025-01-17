@@ -44,9 +44,19 @@ import crystal9 from "./crystals/crystal9.png";
 import paidTrophy1 from "./paid-trophy1.png";
 import paidTrophy2 from "./paid-trophy2.png";
 import botUrlQr from "./bot-url-qr.png";
+import bomb from "./bomb.png";
+import rare from "./rare.png";
+import blue from "./blue.png";
+import orange from "./orange.png";
+import coin from "./coin.png";
 
 
 export {
+    bomb,
+    rare,
+    blue,
+    orange,
+    coin,
     hamsterExchange,
     binanceLogo,
     dollarCoin,
@@ -82,6 +92,11 @@ export {
 
 export const imageMap: Record<string, any> = {
     youtube,
+    bomb,
+    rare,
+    blue,
+    orange,
+    default: coin,
     telegram,
     twitter,
     friends

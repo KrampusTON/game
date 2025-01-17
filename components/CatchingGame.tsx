@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
+import Image from "next/image"; // Import Image pre Next.js
 import { useGameStore } from "@/utils/game-mechanics";
 import TopInfoSection from "@/components/TopInfoSection";
+import { bomb, rare, blue, orange, coin } from "@/images"; // Import konkrétnych obrázkov
 
 interface FallingObject {
   id: number;
@@ -9,6 +11,19 @@ interface FallingObject {
   type: string;
   isCaught: boolean;
 }
+
+interface CatchingGameProps {
+  currentView: string;
+  setCurrentView: (view: string) => void;
+}
+
+const objectImages: { [key: string]: string } = {
+  bomb,
+  rare,
+  blue,
+  orange,
+  default: coin,
+};
 
 interface CatchingGameProps {
   currentView: string;
@@ -160,25 +175,19 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               className="platform"
             />
             {fallingObjects.map((obj) => (
-              <div
+              <Image
                 key={obj.id}
+                src={objectImages[obj.type] || objectImages.default}
+                alt={obj.type}
+                width={45}
+                height={45}
                 style={{
+                  position: "absolute",
                   left: `${obj.x}%`,
                   top: `${obj.y}%`,
-                  backgroundColor:
-                    obj.type === "bomb"
-                      ? "red"
-                      : obj.type === "rare"
-                      ? "yellow"
-                      : obj.type === "blue"
-                      ? "blue"
-                      : obj.type === "orange"
-                      ? "orange"
-                      : "white",
                   transform: obj.isCaught ? "scale(0)" : "scale(1)",
                   transition: obj.isCaught ? "transform 0.3s ease-out" : "none",
                 }}
-                className="absolute w-8 h-8 rounded-full"
               />
             ))}
             <div className="absolute top-4 left-4 text-xl">{`Čas: ${timeLeft}s`}</div>
