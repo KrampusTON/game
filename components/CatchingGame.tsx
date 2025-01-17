@@ -39,7 +39,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const handleMove = (e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
     const newX = (touch.clientX / window.innerWidth) * 100;
-    setPlayerX(Math.max(0, Math.min(100, newX)));
+    setPlayerX(Math.max(10, Math.min(90, newX))); // Platforma má limity od 10 % do 90 %.
     e.preventDefault();
   };
 
@@ -94,8 +94,8 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
     setFallingObjects((prev) =>
       prev.map((obj) => {
         const caught =
-          obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Pravý okraj objektu
-          obj.x - objectSize / 2 <= playerX + platformWidth / 2 && // Ľavý okraj objektu
+          obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Pravý okraj platformy
+          obj.x - objectSize / 2 <= playerX + platformWidth / 2 && // Ľavý okraj platformy
           obj.y + objectSize / 2 > platformBottom && // Spodný okraj objektu
           obj.y - objectSize / 2 <= platformTop && // Horný okraj objektu
           !obj.isCaught;
@@ -183,14 +183,14 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             >
               <div
                 style={{
-                  left: `${playerX}%`,
-                  width: "20%",
+                  left: `${playerX - platformWidth / 2}%`, // Zarovnaj platformu na stred
+                  width: `${platformWidth}%`,
                   height: "20px",
                   backgroundColor: "white",
-                  transform: "translateX(-50%)",
+                  transform: "translateX(0)",
                   bottom: "25%",
                   position: "absolute",
-                  borderRadius: "10px",
+                  border: "2px solid red", // Zvýrazni hranice platformy
                 }}
                 className="platform"
               />
