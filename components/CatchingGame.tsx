@@ -169,10 +169,10 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               style={{
                 left: `${playerX}%`,
                 width: "20%",
-                height: "30px",
+                height: "20px",
                 backgroundColor: "white",
                 transform: "translateX(-50%)",
-                bottom: "10%",
+                bottom: "30%",
                 position: "absolute",
               }}
               className="platform"
