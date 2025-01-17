@@ -88,7 +88,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.map((obj) => {
-        const caught = Math.abs(obj.x - playerX) < 10 && obj.y > 90 && !obj.isCaught;
+        const caught = Math.abs(obj.x - playerX) < 15 && obj.y > 90 && !obj.isCaught;
         if (caught) {
           let pointsToAdd = 0;
 
