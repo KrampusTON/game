@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useRef } from "react";
 import Image, { StaticImageData } from "next/image";
 import { useGameStore } from "@/utils/game-mechanics";
 import TopInfoSection from "@/components/TopInfoSection";
@@ -10,6 +11,7 @@ interface FallingObject {
   y: number;
   type: string;
   isCaught: boolean;
+  isRemoved: boolean; // Nový stav pre odstránenie po animácii
 }
 
 interface CatchingGameProps {
@@ -27,7 +29,6 @@ const objectImages: { [key: string]: StaticImageData } = {
 
 export default function CatchingGame({ currentView, setCurrentView }: CatchingGameProps) {
   const { incrementPoints } = useGameStore();
-  const [playerX, setPlayerX] = useState<number>(50);
   const [fallingObjects, setFallingObjects] = useState<FallingObject[]>([]);
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [score, setScore] = useState<number>(0);
@@ -36,11 +37,13 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const [spawnDelay, setSpawnDelay] = useState<number>(1000);
   const [gameState, setGameState] = useState<string>("menu");
 
+  const playerXRef = useRef<number>(50); // Ref pre presnú pozíciu platformy
+
   const handleMove = (e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
     const newX = (touch.clientX / window.innerWidth) * 100;
-    setPlayerX(Math.max(10, Math.min(90, newX))); // Platforma má limity od 10 % do 90 %.
-    e.preventDefault();
+    const clampedX = Math.max(10, Math.min(90, newX));
+    playerXRef.current = clampedX; // Aktualizácia ref hodnoty
   };
 
   const generateObjectType = (): string => {
@@ -57,6 +60,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const platformBottom = 85; // Dolná hranica platformy
   const platformTop = 95; // Horná hranica platformy
 
+  // Generovanie nových objektov
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
@@ -69,6 +73,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           y: 0,
           type: generateObjectType(),
           isCaught: false,
+          isRemoved: false,
         },
       ]);
     }, spawnDelay);
@@ -76,23 +81,33 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
     return () => clearInterval(interval);
   }, [spawnDelay, gameState, gameOver]);
 
+  // Aktualizácia pozícií objektov
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
     const interval = setInterval(() => {
       setFallingObjects((prev) =>
         prev
-          .map((obj) => ({ ...obj, y: obj.isCaught ? obj.y : obj.y + fallingSpeed }))
-          .filter((obj) => obj.y <= 100 || obj.isCaught)
+          .map((obj) => {
+            if (obj.isCaught) {
+              // Zastav chytené objekty na platforme
+              return { ...obj, y: platformBottom };
+            }
+            return { ...obj, y: obj.y + fallingSpeed };
+          })
+          .filter((obj) => !obj.isRemoved && obj.y <= 100) // Odstráň chytené objekty po animácii
       );
     }, 50);
 
     return () => clearInterval(interval);
   }, [fallingSpeed, gameState, gameOver]);
 
+  // Kontrola kolízie s platformou
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.map((obj) => {
+        const playerX = playerXRef.current; // Presná pozícia platformy
+
         const caught =
           obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Pravý okraj platformy
           obj.x - objectSize / 2 <= playerX + platformWidth / 2 && // Ľavý okraj platformy
@@ -126,13 +141,32 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             incrementPoints(pointsToAdd);
           }
 
+          // Objekt zastavíme na platforme a označíme ako chytený
           return { ...obj, isCaught: true };
         }
         return obj;
       })
     );
-  }, [playerX, incrementPoints, gameOver]);
+  }, [incrementPoints, gameOver]);
 
+  // Odstránenie objektov po animácii
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFallingObjects((prev) =>
+        prev.map((obj) => {
+          if (obj.isCaught && !obj.isRemoved) {
+            // Odstrániť objekt po animácii
+            return { ...obj, isRemoved: true };
+          }
+          return obj;
+        })
+      );
+    }, 300); // Po animácii 300 ms
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Časovač hry
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
@@ -183,14 +217,14 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             >
               <div
                 style={{
-                  left: `${playerX - platformWidth / 2}%`, // Zarovnaj platformu na stred
+                  left: `${playerXRef.current - platformWidth / 2}%`,
                   width: `${platformWidth}%`,
                   height: "20px",
                   backgroundColor: "white",
                   transform: "translateX(0)",
                   bottom: "25%",
                   position: "absolute",
-                  border: "2px solid red", // Zvýrazni hranice platformy
+                  border: "2px solid red",
                 }}
                 className="platform"
               />
@@ -207,7 +241,9 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                     top: `${obj.y}%`,
                     opacity: obj.isCaught ? 0 : 1,
                     transform: obj.isCaught ? "scale(0)" : "scale(1)",
-                    transition: obj.isCaught ? "transform 0.3s ease-out, opacity 0.3s ease-out" : "none",
+                    transition: obj.isCaught
+                      ? "transform 0.3s ease-out, opacity 0.3s ease-out"
+                      : "none",
                   }}
                 />
               ))}
