@@ -91,7 +91,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             }
             return { ...obj, y: obj.y + fallingSpeed };
           })
-          .filter((obj) => obj.y <= 100) // Odstráň objekty mimo obrazovky
+          .filter((obj) => !obj.isCaught || obj.y <= 100) // Odstráň chytené objekty a tie mimo obrazovky
       );
     }, 50);
 
