@@ -117,10 +117,10 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               pointsToAdd = -15;
               break;
             case "rare":
-              pointsToAdd = 25;
+              pointsToAdd = 20;
               break;
             case "blue":
-              pointsToAdd = 50;
+              pointsToAdd = 30;
               break;
             case "orange":
               setGameOver(true);
