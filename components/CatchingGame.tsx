@@ -126,7 +126,8 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             incrementPoints(pointsToAdd);
           }
 
-          return { ...obj, isCaught: true };
+          // Objekt zastavíme na platforme a označíme ako chytený
+          return { ...obj, isCaught: true, y: platformBottom };
         }
         return obj;
       })
@@ -205,8 +206,8 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                     position: "absolute",
                     left: `${obj.x}%`,
                     top: `${obj.y}%`,
-                    opacity: obj.isCaught ? 0 : 1,
-                    transform: obj.isCaught ? "scale(0)" : "scale(1)",
+                    opacity: obj.isCaught ? 0 : 1, // Skryjeme objekt, ak je chytený
+                    transform: obj.isCaught ? "scale(0)" : "scale(1)", // Objekt sa zmenší pri zmiznutí
                     transition: obj.isCaught ? "transform 0.3s ease-out, opacity 0.3s ease-out" : "none",
                   }}
                 />
@@ -239,4 +240,4 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
       </div>
     </div>
   );
-}
+      }
