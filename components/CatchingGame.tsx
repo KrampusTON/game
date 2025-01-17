@@ -88,7 +88,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.map((obj) => {
-        const caught = Math.abs(obj.x - playerX) < 15 && obj.y > 90 && !obj.isCaught;
+        const caught = Math.abs(obj.x - playerX) < 20 && obj.y > 85 && obj.y <= 95 && !obj.isCaught;
         if (caught) {
           let pointsToAdd = 0;
 
@@ -145,9 +145,12 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   }, [timeLeft, gameState, gameOver]);
 
   return (
-    <div className="bg-black flex justify-center items-center min-h-screen overflow-hidden fixed inset-0">
-      <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl relative">
-        <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
+    <div
+  className="bg-black flex justify-center items-center min-h-screen overflow-hidden fixed inset-0"
+  style={{ touchAction: "none" }} // Zabraňuje posúvaniu stránky
+>
+  <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl relative">
+    <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
         {gameState === "menu" && (
           <div className="flex flex-col items-center justify-center h-full">
             <h1 className="text-3xl mb-4">Vitajte v hre!</h1>
@@ -172,7 +175,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                 height: "20px",
                 backgroundColor: "white",
                 transform: "translateX(-50%)",
-                bottom: "20%",
+                bottom: "25%",
                 position: "absolute",
                 borderRadius: "10px",
               }}
