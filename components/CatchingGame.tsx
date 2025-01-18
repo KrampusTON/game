@@ -81,7 +81,6 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const objectSize = 4.5;
   const platformWidth = 20;
   const platformBottom = 85;
-  const platformTop = 95;
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
@@ -108,8 +107,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
         const caught =
           obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
           obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
-          obj.y + objectSize / 2 > platformBottom &&
-          obj.y - objectSize / 2 <= platformTop;
+          obj.y + objectSize / 2 >= platformBottom;
 
         if (caught) {
           const effectX = (obj.x / 100) * window.innerWidth;
@@ -150,7 +148,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             incrementPoints(pointsToAdd);
           }
 
-          return false; // Remove the caught object from the list
+          return false; // Remove the caught object
         }
 
         return true; // Keep uncaught objects
