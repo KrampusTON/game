@@ -1,4 +1,4 @@
-// CatchingGame.tsx
+
 import { useState, useEffect } from "react";
 import Image, { StaticImageData } from "next/image";
 import { useGameStore } from "@/utils/game-mechanics";
@@ -6,8 +6,7 @@ import TopInfoSection from "@/components/TopInfoSection";
 import { bomb, rare, blue, orange, coin } from "@/images";
 import { CollisionEffect } from "@/components/CollisionEffect";
 
-
-// Pridaj nové rozhranie pre efekty kolízie
+// Interface definitions
 interface CollisionEffect {
   id: number;
   x: number;
@@ -46,7 +45,6 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const [fallingSpeed, setFallingSpeed] = useState<number>(2);
   const [spawnDelay, setSpawnDelay] = useState<number>(1000);
   const [gameState, setGameState] = useState<string>("menu");
-  // Pridaj nový state pre efekty kolízie
   const [collisionEffects, setCollisionEffects] = useState<CollisionEffect[]>([]);
 
   const handleMove = (e: React.TouchEvent<HTMLDivElement>) => {
@@ -65,14 +63,18 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
     return "default";
   };
 
-  // Pridaj funkciu pre získanie farby efektu
   const getObjectColor = (type: string): string => {
     switch (type) {
-      case "bomb": return "#ff0000";
-      case "rare": return "#ffd700";
-      case "blue": return "#0000ff";
-      case "orange": return "#ffa500";
-      default: return "#ffff00";
+      case "bomb":
+        return "#ff0000";
+      case "rare":
+        return "#ffd700";
+      case "blue":
+        return "#0000ff";
+      case "orange":
+        return "#ffa500";
+      default:
+        return "#ffff00";
     }
   };
 
@@ -102,27 +104,25 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
 
   useEffect(() => {
     setFallingObjects((prev) =>
-      prev.map((obj) => {
+      prev.filter((obj) => {
         const caught =
           obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
           obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
           obj.y + objectSize / 2 > platformBottom &&
-          obj.y - objectSize / 2 <= platformTop &&
-          !obj.isCaught;
+          obj.y - objectSize / 2 <= platformTop;
 
         if (caught) {
-          // Pridaj efekt kolízie
           const effectX = (obj.x / 100) * window.innerWidth;
           const effectY = (platformBottom / 100) * window.innerHeight;
-          
-          setCollisionEffects(prev => [
+
+          setCollisionEffects((prev) => [
             ...prev,
             {
               id: Date.now(),
               x: effectX,
               y: effectY,
-              color: getObjectColor(obj.type)
-            }
+              color: getObjectColor(obj.type),
+            },
           ]);
 
           let pointsToAdd = 0;
@@ -150,9 +150,10 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             incrementPoints(pointsToAdd);
           }
 
-          return { ...obj, isCaught: true };
+          return false; // Remove the caught object from the list
         }
-        return obj;
+
+        return true; // Keep uncaught objects
       })
     );
   }, [playerX, incrementPoints, gameOver]);
@@ -162,9 +163,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
 
     const interval = setInterval(() => {
       setFallingObjects((prev) =>
-        prev
-          .map((obj) => ({ ...obj, y: obj.isCaught ? obj.y : obj.y + fallingSpeed }))
-          .filter((obj) => obj.y <= 100 || obj.isCaught)
+        prev.map((obj) => ({ ...obj, y: obj.y + fallingSpeed })).filter((obj) => obj.y <= 100)
       );
     }, 50);
 
@@ -194,10 +193,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   }, [timeLeft, gameState, gameOver]);
 
   return (
-    <div
-      className="fixed inset-0 bg-black overflow-hidden"
-      style={{ touchAction: "none" }}
-    >
+    <div className="fixed inset-0 bg-black overflow-hidden" style={{ touchAction: "none" }}>
       <div className="w-full h-full flex justify-center items-center">
         <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl relative">
           <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
@@ -243,23 +239,17 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                     position: "absolute",
                     left: `${obj.x}%`,
                     top: `${obj.y}%`,
-                    opacity: obj.isCaught ? 0 : 1,
-                    transform: obj.isCaught ? "scale(0)" : "scale(1)",
-                    transition: obj.isCaught ? "transform 0.3s ease-out, opacity 0.3s ease-out" : "none",
                   }}
                 />
               ))}
-              {/* Pridaj rendering efektov kolízie */}
-              {collisionEffects.map(effect => (
+              {collisionEffects.map((effect) => (
                 <CollisionEffect
                   key={effect.id}
                   x={effect.x}
                   y={effect.y}
                   color={effect.color}
                   onComplete={() => {
-                    setCollisionEffects(prev => 
-                      prev.filter(e => e.id !== effect.id)
-                    );
+                    setCollisionEffects((prev) => prev.filter((e) => e.id !== effect.id));
                   }}
                 />
               ))}
@@ -270,7 +260,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           {gameState === "gameOver" && (
             <div className="flex flex-col items-center justify-center h-full">
               <h1 className="text-3xl mb-4">Game Over!</h1>
-              <p className="text-xl mb-4">{`Vaše skóre: ${score}`}</p>
+              <p className="text-xl mb-4">{`VaĹˇe skĂłre: ${score}`}</p>
               <button
                 className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
                 onClick={() => {
