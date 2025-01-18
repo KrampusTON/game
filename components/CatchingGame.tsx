@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import Image, { StaticImageData } from "next/image";
 import { useGameStore } from "@/utils/game-mechanics";
@@ -108,8 +107,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
         const caught =
           obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
           obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
-          obj.y + objectSize / 2 > platformBottom &&
-          obj.y - objectSize / 2 <= platformTop;
+          obj.y + objectSize / 2 > platformBottom;
 
         if (caught) {
           const effectX = (obj.x / 100) * window.innerWidth;
@@ -150,7 +148,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             incrementPoints(pointsToAdd);
           }
 
-          return false; // Remove the caught object from the list
+          return false; // Remove the caught object
         }
 
         return true; // Keep uncaught objects
@@ -260,7 +258,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           {gameState === "gameOver" && (
             <div className="flex flex-col items-center justify-center h-full">
               <h1 className="text-3xl mb-4">Game Over!</h1>
-              <p className="text-xl mb-4">{`VaĹˇe skĂłre: ${score}`}</p>
+              <p className="text-xl mb-4">{`Your Score: ${score}`}</p>
               <button
                 className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
                 onClick={() => {
