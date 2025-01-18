@@ -1,8 +1,19 @@
+// CatchingGame.tsx
 import { useState, useEffect } from "react";
 import Image, { StaticImageData } from "next/image";
 import { useGameStore } from "@/utils/game-mechanics";
 import TopInfoSection from "@/components/TopInfoSection";
 import { bomb, rare, blue, orange, coin } from "@/images";
+import { CollisionEffect } from "@/components/CollisionEffect";
+
+
+// Pridaj nové rozhranie pre efekty kolízie
+interface CollisionEffect {
+  id: number;
+  x: number;
+  y: number;
+  color: string;
+}
 
 interface FallingObject {
   id: number;
@@ -35,11 +46,13 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const [fallingSpeed, setFallingSpeed] = useState<number>(2);
   const [spawnDelay, setSpawnDelay] = useState<number>(1000);
   const [gameState, setGameState] = useState<string>("menu");
+  // Pridaj nový state pre efekty kolízie
+  const [collisionEffects, setCollisionEffects] = useState<CollisionEffect[]>([]);
 
   const handleMove = (e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
     const newX = (touch.clientX / window.innerWidth) * 100;
-    setPlayerX(Math.max(10, Math.min(90, newX))); // Platforma má limity od 10 % do 90 %.
+    setPlayerX(Math.max(10, Math.min(90, newX)));
     e.preventDefault();
   };
 
@@ -52,10 +65,21 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
     return "default";
   };
 
-  const objectSize = 4.5; // Veľkosť objektu v percentách
-  const platformWidth = 20; // Šírka platformy v percentách
-  const platformBottom = 85; // Dolná hranica platformy
-  const platformTop = 95; // Horná hranica platformy
+  // Pridaj funkciu pre získanie farby efektu
+  const getObjectColor = (type: string): string => {
+    switch (type) {
+      case "bomb": return "#ff0000";
+      case "rare": return "#ffd700";
+      case "blue": return "#0000ff";
+      case "orange": return "#ffa500";
+      default: return "#ffff00";
+    }
+  };
+
+  const objectSize = 4.5;
+  const platformWidth = 20;
+  const platformBottom = 85;
+  const platformTop = 95;
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
@@ -77,30 +101,30 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   }, [spawnDelay, gameState, gameOver]);
 
   useEffect(() => {
-    if (gameState !== "playing" || gameOver) return;
-
-    const interval = setInterval(() => {
-      setFallingObjects((prev) =>
-        prev
-          .map((obj) => ({ ...obj, y: obj.isCaught ? obj.y : obj.y + fallingSpeed }))
-          .filter((obj) => obj.y <= 100 || obj.isCaught)
-      );
-    }, 50);
-
-    return () => clearInterval(interval);
-  }, [fallingSpeed, gameState, gameOver]);
-
-  useEffect(() => {
     setFallingObjects((prev) =>
       prev.map((obj) => {
         const caught =
-          obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Pravý okraj platformy
-          obj.x - objectSize / 2 <= playerX + platformWidth / 2 && // Ľavý okraj platformy
-          obj.y + objectSize / 2 > platformBottom && // Spodný okraj objektu
-          obj.y - objectSize / 2 <= platformTop && // Horný okraj objektu
+          obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
+          obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
+          obj.y + objectSize / 2 > platformBottom &&
+          obj.y - objectSize / 2 <= platformTop &&
           !obj.isCaught;
 
         if (caught) {
+          // Pridaj efekt kolízie
+          const effectX = (obj.x / 100) * window.innerWidth;
+          const effectY = (platformBottom / 100) * window.innerHeight;
+          
+          setCollisionEffects(prev => [
+            ...prev,
+            {
+              id: Date.now(),
+              x: effectX,
+              y: effectY,
+              color: getObjectColor(obj.type)
+            }
+          ]);
+
           let pointsToAdd = 0;
 
           switch (obj.type) {
@@ -132,6 +156,20 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
       })
     );
   }, [playerX, incrementPoints, gameOver]);
+
+  useEffect(() => {
+    if (gameState !== "playing" || gameOver) return;
+
+    const interval = setInterval(() => {
+      setFallingObjects((prev) =>
+        prev
+          .map((obj) => ({ ...obj, y: obj.isCaught ? obj.y : obj.y + fallingSpeed }))
+          .filter((obj) => obj.y <= 100 || obj.isCaught)
+      );
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [fallingSpeed, gameState, gameOver]);
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
@@ -183,14 +221,14 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             >
               <div
                 style={{
-                  left: `${playerX - platformWidth / 2}%`, // Zarovnaj platformu na stred
+                  left: `${playerX - platformWidth / 2}%`,
                   width: `${platformWidth}%`,
                   height: "20px",
                   backgroundColor: "white",
                   transform: "translateX(0)",
                   bottom: "25%",
                   position: "absolute",
-                  border: "2px solid red", // Zvýrazni hranice platformy
+                  border: "2px solid red",
                 }}
                 className="platform"
               />
@@ -208,6 +246,20 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                     opacity: obj.isCaught ? 0 : 1,
                     transform: obj.isCaught ? "scale(0)" : "scale(1)",
                     transition: obj.isCaught ? "transform 0.3s ease-out, opacity 0.3s ease-out" : "none",
+                  }}
+                />
+              ))}
+              {/* Pridaj rendering efektov kolízie */}
+              {collisionEffects.map(effect => (
+                <CollisionEffect
+                  key={effect.id}
+                  x={effect.x}
+                  y={effect.y}
+                  color={effect.color}
+                  onComplete={() => {
+                    setCollisionEffects(prev => 
+                      prev.filter(e => e.id !== effect.id)
+                    );
                   }}
                 />
               ))}

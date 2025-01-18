@@ -7,7 +7,6 @@ body {
   background-color: #000000;
 }
 
-
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -48,7 +47,6 @@ image {
   box-shadow: 0 -26px 20px rgba(243, 186, 47, 0.3);
 }
 
-/* Define the keyframes for the blinking animation */
 @keyframes blink {
   0% {
     opacity: 1;
@@ -63,7 +61,6 @@ image {
   }
 }
 
-/* Apply the animation to the dot class */
 .dot {
   width: 6px;
   height: 6px;
@@ -110,17 +107,13 @@ image {
 
 @layer utilities {
 
-  /* Hide scrollbar for Chrome, Safari and Opera */
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
 
-  /* Hide scrollbar for IE, Edge and Firefox */
   .no-scrollbar {
     -ms-overflow-style: none;
-    /* IE and Edge */
     scrollbar-width: none;
-    /* Firefox */
   }
 }
 
@@ -129,7 +122,6 @@ image {
 }
 
 @keyframes pulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -137,5 +129,16 @@ image {
 
   50% {
     transform: scale(1.05);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
   }
 }
