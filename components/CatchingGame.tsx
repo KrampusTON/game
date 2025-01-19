@@ -19,7 +19,7 @@ interface FallingObject {
   y: number;
   type: string;
   isCaught: boolean;
-  isFading: boolean;
+  isFading: boolean; // Added for fade-out animation
 }
 
 interface CatchingGameProps {
@@ -81,7 +81,6 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const objectSize = 4.5;
   const platformWidth = 20;
   const platformBottom = 85;
-  const platformTop = 95;
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
@@ -106,31 +105,73 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.filter((obj) => {
-        if (obj.isFading) return true;
-        if (
+        if (obj.isFading) return true; // Keep fading objects temporarily
+
+        const caught =
           obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
           obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
-          obj.y + objectSize / 2 > platformBottom
-        ) {
+          obj.y + objectSize / 2 > platformBottom;
+
+        if (caught) {
           obj.isFading = true;
-          incrementPoints(10);
-          setScore((prevScore) => prevScore + 10);
+          const effectX = (obj.x / 100) * window.innerWidth;
+          const effectY = (platformBottom / 100) * window.innerHeight;
+
+          setCollisionEffects((prev) => [
+            ...prev,
+            {
+              id: Date.now(),
+              x: effectX,
+              y: effectY,
+              color: getObjectColor(obj.type),
+            },
+          ]);
+
+          let pointsToAdd = 0;
+          switch (obj.type) {
+            case "bomb":
+              pointsToAdd = -15;
+              break;
+            case "rare":
+              pointsToAdd = 25;
+              break;
+            case "blue":
+              pointsToAdd = 50;
+              break;
+            case "orange":
+              setGameOver(true);
+              setGameState("gameOver");
+              break;
+            default:
+              pointsToAdd = 10;
+          }
+
+          if (!gameOver) {
+            setScore((prevScore) => prevScore + pointsToAdd);
+            incrementPoints(pointsToAdd);
+          }
+
           setTimeout(() => {
             setFallingObjects((current) => current.filter((o) => o.id !== obj.id));
-          }, 500);
+          }, 500); // Wait for fade-out animation
+
           return true;
         }
-        return obj.y <= 100;
+
+        return obj.y <= 100; // Keep objects within bounds
       })
     );
-  }, [playerX, incrementPoints]);
+  }, [playerX, incrementPoints, gameOver]);
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
     const interval = setInterval(() => {
       setFallingObjects((prev) =>
-        prev.map((obj) => ({ ...obj, y: obj.isFading ? obj.y : obj.y + fallingSpeed }))
+        prev.map((obj) => ({
+          ...obj,
+          y: obj.isFading ? obj.y : obj.y + fallingSpeed,
+        }))
       );
     }, 50);
 
@@ -188,22 +229,30 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                   width: `${platformWidth}%`,
                   height: "20px",
                   backgroundColor: "white",
-                  transform: "translateX(0)",
                   bottom: "25%",
                   position: "absolute",
-                  border: "2px solid red",
                 }}
-                className="platform"
               />
               {fallingObjects.map((obj) => (
                 <div
                   key={obj.id}
                   className={`absolute h-5 w-5 rounded-full ${
                     obj.isFading ? "bg-yellow-400 opacity-50" : "bg-red-500"
-                  } transition-all duration-500`}
+                  } transition-opacity duration-500`}
                   style={{
                     left: `${obj.x}%`,
                     top: `${obj.y}%`,
+                  }}
+                />
+              ))}
+              {collisionEffects.map((effect) => (
+                <CollisionEffect
+                  key={effect.id}
+                  x={effect.x}
+                  y={effect.y}
+                  color={effect.color}
+                  onComplete={() => {
+                    setCollisionEffects((prev) => prev.filter((e) => e.id !== effect.id));
                   }}
                 />
               ))}
