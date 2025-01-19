@@ -111,7 +111,8 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   
         if (caught) {
           const effectX = (obj.x / 100) * window.innerWidth;
-          const effectY = (platformBottom / 100) * window.innerHeight;
+          const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
+          const effectY = platformPixelHeight - 20; // Upravené: umiestnite efekt presne nad platformu
   
           setCollisionEffects((prev) => [
             ...prev,
@@ -155,6 +156,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
       })
     );
   }, [playerX, incrementPoints, gameOver]);
+  
   
 
   useEffect(() => {
@@ -221,7 +223,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                   height: "20px",
                   backgroundColor: "white",
                   transform: "translateX(0)",
-                  bottom: "25%",
+                  bottom: "12%",
                   position: "absolute",
                   border: "2px solid red",
                 }}
