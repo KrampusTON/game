@@ -71,7 +71,7 @@ function ClickerPage() {
         </>
       )}
       {renderCurrentView()}
-      {isInitialized && currentView !== 'loading' && (
+      {isInitialized && currentView !== 'loading' && currentView !== 'catch' && (
         <Navigation
           currentView={currentView}
           setCurrentView={setCurrentView}

@@ -19,7 +19,6 @@ interface FallingObject {
   y: number;
   type: string;
   isCaught: boolean;
-  isFading: boolean; // Added for fade-out animation
 }
 
 interface CatchingGameProps {
@@ -81,6 +80,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const objectSize = 4.5;
   const platformWidth = 20;
   const platformBottom = 85;
+  const platformTop = 95;
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
@@ -94,7 +94,6 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           y: 0,
           type: generateObjectType(),
           isCaught: false,
-          isFading: false,
         },
       ]);
     }, spawnDelay);
@@ -105,18 +104,15 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.filter((obj) => {
-        if (obj.isFading) return true; // Keep fading objects temporarily
-
         const caught =
           obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
           obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
           obj.y + objectSize / 2 > platformBottom;
-
+  
         if (caught) {
-          obj.isFading = true;
           const effectX = (obj.x / 100) * window.innerWidth;
           const effectY = (platformBottom / 100) * window.innerHeight;
-
+  
           setCollisionEffects((prev) => [
             ...prev,
             {
@@ -126,8 +122,9 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               color: getObjectColor(obj.type),
             },
           ]);
-
+  
           let pointsToAdd = 0;
+  
           switch (obj.type) {
             case "bomb":
               pointsToAdd = -15;
@@ -145,33 +142,27 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             default:
               pointsToAdd = 10;
           }
-
+  
           if (!gameOver) {
             setScore((prevScore) => prevScore + pointsToAdd);
             incrementPoints(pointsToAdd);
           }
-
-          setTimeout(() => {
-            setFallingObjects((current) => current.filter((o) => o.id !== obj.id));
-          }, 500); // Wait for fade-out animation
-
-          return true;
+  
+          return false; // Odstráňte chytený objekt
         }
-
-        return obj.y <= 100; // Keep objects within bounds
+  
+        return obj.y <= 100; // Odstráňte objekty, ktoré spadli mimo obrazovky
       })
     );
   }, [playerX, incrementPoints, gameOver]);
+  
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
     const interval = setInterval(() => {
       setFallingObjects((prev) =>
-        prev.map((obj) => ({
-          ...obj,
-          y: obj.isFading ? obj.y : obj.y + fallingSpeed,
-        }))
+        prev.map((obj) => ({ ...obj, y: obj.y + fallingSpeed })).filter((obj) => obj.y <= 100)
       );
     }, 50);
 
@@ -229,17 +220,22 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                   width: `${platformWidth}%`,
                   height: "20px",
                   backgroundColor: "white",
-                  bottom: "25%",
+                  transform: "translateX(0)",
+                  bottom: "5%",
                   position: "absolute",
+                  border: "2px solid red",
                 }}
+                className="platform"
               />
               {fallingObjects.map((obj) => (
-                <div
+                <Image
                   key={obj.id}
-                  className={`absolute h-5 w-5 rounded-full ${
-                    obj.isFading ? "bg-yellow-400 opacity-50" : "bg-red-500"
-                  } transition-opacity duration-500`}
+                  src={objectImages[obj.type] || objectImages.default}
+                  alt={obj.type}
+                  width={45}
+                  height={45}
                   style={{
+                    position: "absolute",
                     left: `${obj.x}%`,
                     top: `${obj.y}%`,
                   }}
@@ -261,25 +257,33 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             </div>
           )}
           {gameState === "gameOver" && (
-            <div className="flex flex-col items-center justify-center h-full">
-              <h1 className="text-3xl mb-4">Game Over!</h1>
-              <p className="text-xl mb-4">{`Your Score: ${score}`}</p>
-              <button
-                className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
-                onClick={() => {
-                  setGameState("menu");
-                  setScore(0);
-                  setTimeLeft(60);
-                  setGameOver(false);
-                  setFallingSpeed(2);
-                  setSpawnDelay(1000);
-                  setFallingObjects([]);
-                }}
-              >
-                Play again
-              </button>
-            </div>
-          )}
+  <div className="flex flex-col items-center justify-center h-full">
+    <h1 className="text-3xl mb-4">Game Over!</h1>
+    <p className="text-xl mb-4">{`Your Score: ${score}`}</p>
+    <div className="flex gap-4">
+      <button
+        className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
+        onClick={() => {
+          setGameState("menu");
+          setScore(0);
+          setTimeLeft(60);
+          setGameOver(false);
+          setFallingSpeed(2);
+          setSpawnDelay(1000);
+          setFallingObjects([]);
+        }}
+      >
+        Play again
+      </button>
+      <button
+        className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
+        onClick={() => setCurrentView('game')}
+      >
+        Back to Home
+      </button>
+    </div>
+  </div>
+)}
         </div>
       </div>
     </div>
