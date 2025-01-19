@@ -19,6 +19,7 @@ interface FallingObject {
   y: number;
   type: string;
   isCaught: boolean;
+  isFading: boolean;
 }
 
 interface CatchingGameProps {
@@ -94,6 +95,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           y: 0,
           type: generateObjectType(),
           isCaught: false,
+          isFading: false,
         },
       ]);
     }, spawnDelay);
@@ -104,64 +106,31 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.filter((obj) => {
-        const caught =
+        if (obj.isFading) return true;
+        if (
           obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
           obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
-          obj.y + objectSize / 2 > platformBottom;
-
-        if (caught) {
-          const effectX = (obj.x / 100) * window.innerWidth;
-          const effectY = (platformBottom / 100) * window.innerHeight;
-
-          setCollisionEffects((prev) => [
-            ...prev,
-            {
-              id: Date.now(),
-              x: effectX,
-              y: effectY,
-              color: getObjectColor(obj.type),
-            },
-          ]);
-
-          let pointsToAdd = 0;
-
-          switch (obj.type) {
-            case "bomb":
-              pointsToAdd = -15;
-              break;
-            case "rare":
-              pointsToAdd = 25;
-              break;
-            case "blue":
-              pointsToAdd = 50;
-              break;
-            case "orange":
-              setGameOver(true);
-              setGameState("gameOver");
-              break;
-            default:
-              pointsToAdd = 10;
-          }
-
-          if (!gameOver) {
-            setScore((prevScore) => prevScore + pointsToAdd);
-            incrementPoints(pointsToAdd);
-          }
-
-          return false; // Remove the caught object
+          obj.y + objectSize / 2 > platformBottom
+        ) {
+          obj.isFading = true;
+          incrementPoints(10);
+          setScore((prevScore) => prevScore + 10);
+          setTimeout(() => {
+            setFallingObjects((current) => current.filter((o) => o.id !== obj.id));
+          }, 500);
+          return true;
         }
-
-        return true; // Keep uncaught objects
+        return obj.y <= 100;
       })
     );
-  }, [playerX, incrementPoints, gameOver]);
+  }, [playerX, incrementPoints]);
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
     const interval = setInterval(() => {
       setFallingObjects((prev) =>
-        prev.map((obj) => ({ ...obj, y: obj.y + fallingSpeed })).filter((obj) => obj.y <= 100)
+        prev.map((obj) => ({ ...obj, y: obj.isFading ? obj.y : obj.y + fallingSpeed }))
       );
     }, 50);
 
@@ -227,27 +196,14 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                 className="platform"
               />
               {fallingObjects.map((obj) => (
-                <Image
+                <div
                   key={obj.id}
-                  src={objectImages[obj.type] || objectImages.default}
-                  alt={obj.type}
-                  width={45}
-                  height={45}
+                  className={`absolute h-5 w-5 rounded-full ${
+                    obj.isFading ? "bg-yellow-400 opacity-50" : "bg-red-500"
+                  } transition-all duration-500`}
                   style={{
-                    position: "absolute",
                     left: `${obj.x}%`,
                     top: `${obj.y}%`,
-                  }}
-                />
-              ))}
-              {collisionEffects.map((effect) => (
-                <CollisionEffect
-                  key={effect.id}
-                  x={effect.x}
-                  y={effect.y}
-                  color={effect.color}
-                  onComplete={() => {
-                    setCollisionEffects((prev) => prev.filter((e) => e.id !== effect.id));
                   }}
                 />
               ))}
