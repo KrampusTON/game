@@ -1,4 +1,3 @@
-// CollisionEffect.tsx
 import React, { useEffect } from "react";
 
 interface CollisionEffectProps {
@@ -25,7 +24,7 @@ export const CollisionEffect: React.FC<CollisionEffectProps> = ({
       style={{
         position: "absolute",
         left: x,
-        top: y,
+        top: y - 20, // Jemný posun efektu nad platformu
         width: "50px",
         height: "50px",
         backgroundColor: color,
