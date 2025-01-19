@@ -106,7 +106,6 @@ image {
 }
 
 @layer utilities {
-
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -137,8 +136,21 @@ image {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
   }
+
   100% {
     transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes particleMove {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(calc(var(--dx, 0) * 50px), calc(var(--dy, 0) * 50px)) scale(0.5);
     opacity: 0;
   }
 }
