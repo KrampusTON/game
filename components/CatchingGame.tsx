@@ -101,82 +101,68 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   }, [spawnDelay, gameState, gameOver]);
 
   useEffect(() => {
-    const updateObjects = () => {
-      setFallingObjects((prev) =>
-        prev.filter((obj) => {
-          const prevY = obj.y;
-          const newY = obj.y + fallingSpeed;
+    setFallingObjects((prev) =>
+      prev.filter((obj) => {
+        // Kontrola, či objekt dopadol na platformu
+        const onPlatform =
+          obj.y + objectSize / 2 >= platformBottom && // Objekt je na úrovni platformy
+          obj.y - objectSize / 2 <= platformBottom + 2 && // Tolerancia okolo platformy
+          obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Objekt je vľavo na platforme
+          obj.x - objectSize / 2 <= playerX + platformWidth / 2; // Objekt je vpravo na platforme
   
-          const objectLeft = obj.x - objectSize / 2;
-          const objectRight = obj.x + objectSize / 2;
-          const platformLeft = playerX - platformWidth / 2;
-          const platformRight = playerX + platformWidth / 2;
+        if (onPlatform) {
+          const effectX = (obj.x / 100) * window.innerWidth;
+          const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
+          const effectY = platformPixelHeight - 30;
   
-          const intersectsHorizontally =
-            objectRight >= platformLeft && objectLeft <= platformRight;
-          const intersectsVertically =
-            prevY + objectSize / 2 < platformBottom &&
-            newY + objectSize / 2 >= platformBottom;
+          // Generovanie efektu kolízie
+          setCollisionEffects((prev) => [
+            ...prev,
+            {
+              id: Date.now(),
+              x: effectX,
+              y: effectY,
+              color: getObjectColor(obj.type),
+            },
+          ]);
   
-          const caught = intersectsHorizontally && intersectsVertically;
-  
-          if (caught) {
-            const effectX = (obj.x / 100) * window.innerWidth;
-            const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
-            const effectY = platformPixelHeight - 30;
-  
-            setCollisionEffects((prev) => [
-              ...prev,
-              {
-                id: Date.now(),
-                x: effectX,
-                y: effectY,
-                color: getObjectColor(obj.type),
-              },
-            ]);
-  
-            if (navigator.vibrate) {
-              navigator.vibrate(50);
-            }
-  
-            let pointsToAdd = 0;
-            switch (obj.type) {
-              case "bomb":
-                pointsToAdd = -15;
-                break;
-              case "rare":
-                pointsToAdd = 25;
-                break;
-              case "blue":
-                pointsToAdd = 50;
-                break;
-              case "orange":
-                setGameOver(true);
-                setGameState("gameOver");
-                break;
-              default:
-                pointsToAdd = 10;
-            }
-  
-            if (!gameOver) {
-              setScore((prevScore) => prevScore + pointsToAdd);
-              incrementPoints(pointsToAdd);
-            }
-  
-            return false; // Objekt sa odstráni
+          if (navigator.vibrate) {
+            navigator.vibrate(50);
           }
   
-          // Aktualizácia polohy objektu
-          obj.y = newY;
-          return newY <= 100; // Zachová objekty na obrazovke
-        })
-      );
-    };
+          let pointsToAdd = 0;
   
-    const interval = setInterval(updateObjects, 50);
-    return () => clearInterval(interval);
-  }, [playerX, incrementPoints, gameOver, fallingSpeed]);
+          // Priradenie bodov podľa typu objektu
+          switch (obj.type) {
+            case "bomb":
+              pointsToAdd = -15;
+              break;
+            case "rare":
+              pointsToAdd = 25;
+              break;
+            case "blue":
+              pointsToAdd = 50;
+              break;
+            case "orange":
+              setGameOver(true);
+              setGameState("gameOver");
+              break;
+            default:
+              pointsToAdd = 10;
+          }
   
+          if (!gameOver) {
+            setScore((prevScore) => prevScore + pointsToAdd);
+            incrementPoints(pointsToAdd);
+          }
+  
+          return false; // Odstráni objekt zo zoznamu
+        }
+  
+        return obj.y <= 100; // Zachová objekty, ktoré sú stále na obrazovke
+      })
+    );
+  }, [playerX, incrementPoints, gameOver]);
   
 
   useEffect(() => {
@@ -193,27 +179,25 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
-  
+
     const timer = setInterval(() => {
-      setTimeLeft((prevTime) => {
-        if (prevTime <= 1) {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
           setGameOver(true);
           setGameState("gameOver");
-          clearInterval(timer);
           return 0;
         }
-  
-        if (prevTime % 5 === 0) {
-          setFallingSpeed((prevSpeed) => Math.min(prevSpeed + 0.5, 10));
-          setSpawnDelay((prevDelay) => Math.max(prevDelay - 50, 500));
-        }
-  
-        return prevTime - 1;
+        return prev - 1;
       });
+
+      if (timeLeft % 5 === 0) {
+        setFallingSpeed((prev) => Math.min(prev + 0.5, 10));
+        setSpawnDelay((prev) => Math.max(prev - 50, 500));
+      }
     }, 1000);
-  
+
     return () => clearInterval(timer);
-  }, [gameState, gameOver]);
+  }, [timeLeft, gameState, gameOver]);
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden" style={{ touchAction: "none" }}>
