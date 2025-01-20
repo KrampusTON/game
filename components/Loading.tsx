@@ -1,13 +1,13 @@
 // components/Loading.tsx
 
 /**
- * This project was developed by Nikandr Surkov.
+ * This project was developed by PeGoverse.
  * You may not use this code if you purchased it from any source other than the official website https://nikandr.com.
  * If you purchased it from the official website, you may use it for your own projects,
  * but you may not resell it or publish it publicly.
  * 
  * Website: https://nikandr.com
- * YouTube: https://www.youtube.com/@NikandrSurkov
+ * YouTube: https://www.youtube.com/@PeGo
  * Telegram: https://t.me/nikandr_s
  * Telegram channel for news/updates: https://t.me/clicker_game_news
  * GitHub: https://github.com/nikandr-surkov
@@ -43,7 +43,7 @@ export default function Loading({ setIsInitialized, setCurrentView }: LoadingPro
       if (typeof window !== 'undefined') {
         const WebApp = (await import('@twa-dev/sdk')).default;
         WebApp.ready();
-        WebApp.bottomBarColor = "#1d2025";
+        WebApp.bottomBarColor = "#000000";
         WebApp.headerColor = "#000000";
         WebApp.enableVerticalSwipes();
         WebApp.expand();
@@ -145,7 +145,7 @@ export default function Loading({ setIsInitialized, setCurrentView }: LoadingPro
 
   if (!isAppropriateDevice) {
     return (
-      <div className="bg-[#1d2025] flex justify-center items-center h-screen">
+      <div className="bg-[#000000] flex justify-center items-center h-screen">
         <div className="w-full max-w-xl text-white flex flex-col items-center">
           <h1 className="text-2xl font-bold mb-4">Play on your mobile</h1>
           <Image
@@ -156,14 +156,14 @@ export default function Loading({ setIsInitialized, setCurrentView }: LoadingPro
             height={200}
           />
           <p className="mt-4">@{process.env.NEXT_PUBLIC_BOT_USERNAME}</p>
-          <p className="mt-2">Developed by Nikandr Surkov</p>
+          <p className="mt-2">Developed by PeGoverse</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#1d2025] flex justify-center items-center h-screen">
+    <div className="bg-[#000000] flex justify-center items-center h-screen">
       <div className="w-full max-w-xl text-white flex flex-col items-center">
         <div className="w-64 h-64 rounded-full circle-outer p-2 mb-8">
           <div className="w-full h-full rounded-full circle-inner overflow-hidden relative">
@@ -180,7 +180,7 @@ export default function Loading({ setIsInitialized, setCurrentView }: LoadingPro
           </div>
         </div>
 
-        <h1 className="text-3xl font-bold mb-4">Loading Ton Ice</h1>
+        <h1 className="text-3xl font-bold mb-4">Loading PeGo</h1>
 
         <div className="flex items-center space-x-2">
           <IceCube className="w-8 h-8 animate-pulse" />

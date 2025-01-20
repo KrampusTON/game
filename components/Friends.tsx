@@ -1,13 +1,13 @@
 // components/Friends.tsx
 
 /**
- * This project was developed by Nikandr Surkov.
+ * This project was developed by PeGoverse.
  * You may not use this code if you purchased it from any source other than the official website https://nikandr.com.
  * If you purchased it from the official website, you may use it for your own projects,
  * but you may not resell it or publish it publicly.
  * 
  * Website: https://nikandr.com
- * YouTube: https://www.youtube.com/@NikandrSurkov
+ * YouTube: https://www.youtube.com/@PeGo
  * Telegram: https://t.me/nikandr_s
  * Telegram channel for news/updates: https://t.me/clicker_game_news
  * GitHub: https://github.com/nikandr-surkov
@@ -108,7 +108,7 @@ export default function Friends() {
       ? `https://t.me/${process.env.NEXT_PUBLIC_BOT_USERNAME}/${process.env.NEXT_PUBLIC_APP_URL_SHORT_NAME}?startapp=kentId${userTelegramId || ""}`
       : "https://t.me/clicker_game_news";
 
-    const shareText = `🎮 Join me in TonIce: Tap, Earn, and Win! 🏆\n🚀 Let's play and earn together!`;
+    const shareText = `🎮 Join me in PeGo: Tap, Earn, and Win! 🏆\n🚀 Let's play and earn together!`;
 
     try {
       triggerHapticFeedback(window);

@@ -205,17 +205,25 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
         <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl relative">
           <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
           {gameState === "menu" && (
-            <div className="flex flex-col items-center justify-center h-full">
-              <Image src={rare} alt="Logo" width={200} height={200} className="mb-4" />
-              <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
-              <button
-                className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
-                onClick={() => setGameState("playing")}
-              >
-                Play
-              </button>
-            </div>
-          )}
+  <div className="flex flex-col items-center justify-center h-full">
+    <Image src={rare} alt="Logo" width={200} height={200} className="mb-4" />
+    <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
+    <div className="flex gap-4">
+      <button
+        className="bg-white text-black px-6 py-2 rounded-md text-lg"
+        onClick={() => setGameState("playing")}
+      >
+        Play
+      </button>
+      <button
+        className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
+        onClick={() => setCurrentView("home")} // Nastaví pohľad na hlavnú stránku
+      >
+        Back to Home
+      </button>
+    </div>
+  </div>
+)}
           {gameState === "playing" && (
             <div
               className="flex-grow bg-black z-0 relative overflow-hidden"
@@ -270,7 +278,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
     <p className="text-xl mb-4">{`Your Score: ${score}`}</p>
     <div className="flex gap-4">
       <button
-        className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
+        className="bg-white text-black px-6 py-2 rounded-md text-lg"
         onClick={() => {
           setGameState("menu");
           setScore(0);

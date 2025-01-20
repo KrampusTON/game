@@ -1,13 +1,13 @@
 // components/Mine.tsx
 
 /**
- * This project was developed by Nikandr Surkov.
+ * This project was developed by PeGoverse.
  * You may not use this code if you purchased it from any source other than the official website https://nikandr.com.
  * If you purchased it from the official website, you may use it for your own projects,
  * but you may not resell it or publish it publicly.
  * 
  * Website: https://nikandr.com
- * YouTube: https://www.youtube.com/@NikandrSurkov
+ * YouTube: https://www.youtube.com/@PeGo
  * Telegram: https://t.me/nikandr_s
  * Telegram channel for news/updates: https://t.me/clicker_game_news
  * GitHub: https://github.com/nikandr-surkov
@@ -102,7 +102,7 @@ export default function Mine({ setCurrentView }: MineProps) {
 
                             <div className="bg-[#272a2f] rounded-lg p-4 mt-6">
                                 <div className="flex justify-between items-center mb-4">
-                                    <p>Current ice per hour:</p>
+                                    <p>Current PeGo per hour:</p>
                                     <p className="text-[#f3ba2f]">{formatNumber(profitPerHour)}</p>
                                 </div>
                                 <div className="flex justify-between items-center mb-4">
@@ -110,7 +110,7 @@ export default function Mine({ setCurrentView }: MineProps) {
                                     <p className="text-[#f3ba2f]">{formatNumber(upgradeCost)}</p>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <p>Ice per hour increase:</p>
+                                    <p>PeGo per hour increase:</p>
                                     <p className="text-[#f3ba2f]">+{formatNumber(upgradeIncrease)}</p>
                                 </div>
                             </div>
