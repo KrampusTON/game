@@ -80,7 +80,6 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const objectSize = 4.5;
   const platformWidth = 20;
   const platformBottom = 85;
-  const platformTop = 95;
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
@@ -104,18 +103,17 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.filter((obj) => {
-        // Kontrola, že objekt je nad platformou a jeho spodná hrana sa dotýka platformy
         const caught =
-          obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Objekt sa nachádza v horizontálnom rozsahu platformy
+          obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
           obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
-          obj.y + objectSize / 2 >= platformBottom && // Spodná hrana objektu dosiahla platformu
-          obj.y - objectSize / 2 < platformBottom; // Objekt neprešiel pod platformu
-  
+          obj.y + objectSize / 2 >= platformBottom &&
+          obj.y - objectSize / 2 < platformBottom;
+
         if (caught) {
           const effectX = (obj.x / 100) * window.innerWidth;
           const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
           const effectY = platformPixelHeight - 30;
-  
+
           setCollisionEffects((prev) => [
             ...prev,
             {
@@ -125,13 +123,13 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               color: getObjectColor(obj.type),
             },
           ]);
-  
+
           if (navigator.vibrate) {
             navigator.vibrate(50);
           }
-  
+
           let pointsToAdd = 0;
-  
+
           switch (obj.type) {
             case "bomb":
               pointsToAdd = -15;
@@ -149,23 +147,19 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             default:
               pointsToAdd = 10;
           }
-  
+
           if (!gameOver) {
             setScore((prevScore) => prevScore + pointsToAdd);
             incrementPoints(pointsToAdd);
           }
-  
+
           return false; // Odstráni chytený objekt
         }
-  
-        return obj.y <= 100; // Odstráni objekty, ktoré sú mimo obrazovky
+
+        return obj.y <= 100; // Odstráni objekty mimo obrazovky
       })
     );
   }, [playerX, incrementPoints, gameOver]);
-  
-  
-  
-  
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
@@ -207,25 +201,25 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
         <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl relative">
           <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
           {gameState === "menu" && (
-  <div className="flex flex-col items-center justify-center h-full">
-    <Image src={coin} alt="Logo" width={200} height={200} className="mb-4" />
-    <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
-    <div className="flex gap-4">
-      <button
-        className="bg-white text-black px-6 py-2 rounded-md text-lg"
-        onClick={() => setGameState("playing")}
-      >
-        Play
-      </button>
-      <button
-        className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
-        onClick={() => setCurrentView("home")} // Nastaví pohľad na hlavnú stránku
-      >
-        Back to Home
-      </button>
-    </div>
-  </div>
-)}
+            <div className="flex flex-col items-center justify-center h-full">
+              <Image src={coin} alt="Logo" width={200} height={200} className="mb-4" />
+              <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
+              <div className="flex gap-4">
+                <button
+                  className="bg-white text-black px-6 py-2 rounded-md text-lg"
+                  onClick={() => setGameState("playing")}
+                >
+                  Play
+                </button>
+                <button
+                  className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
+                  onClick={() => setCurrentView("home")}
+                >
+                  Back to Home
+                </button>
+              </div>
+            </div>
+          )}
           {gameState === "playing" && (
             <div
               className="flex-grow bg-black z-0 relative overflow-hidden"
@@ -275,23 +269,23 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             </div>
           )}
           {gameState === "gameOver" && (
-  <div className="flex flex-col items-center justify-center h-full">
-    <h1 className="text-3xl mb-4">Game Over!</h1>
-    <p className="text-xl mb-4">{`Your Score: ${score}`}</p>
-    <div className="flex gap-4">
-      <button
-        className="bg-white text-black px-6 py-2 rounded-md text-lg"
-        onClick={() => {
-          setGameState("menu");
-          setScore(0);
-          setTimeLeft(60);
-          setGameOver(false);
-          setFallingSpeed(2);
-          setSpawnDelay(1000);
-          setFallingObjects([]);
-        }}
-      >
-        Play again
+            <div className="flex flex-col items-center justify-center h-full">
+              <h1 className="text-3xl mb-4">Game Over!</h1>
+              <p className="text-xl mb-4">{`Your Score: ${score}`}</p>
+              <div className="flex gap-4">
+                <button
+                  className="bg-white text-black px-6 py-2 rounded-md text-lg"
+                  onClick={() => {
+                    setGameState("menu");
+                    setScore(0);
+                    setTimeLeft(60);
+                    setGameOver(false);
+                    setFallingSpeed(2);
+                    setSpawnDelay(1000);
+                    setFallingObjects([]);
+                  }}
+                >
+                  Play again
       </button>
       <button
         className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
