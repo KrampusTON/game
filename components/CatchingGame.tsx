@@ -107,12 +107,12 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
           obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
           obj.y + objectSize / 2 > platformBottom;
-
-        if (caught) {
+  
+        if (caught || obj.y + objectSize / 2 >= platformBottom) {
           const effectX = (obj.x / 100) * window.innerWidth;
           const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
           const effectY = platformPixelHeight - 30;
-
+  
           setCollisionEffects((prev) => [
             ...prev,
             {
@@ -122,13 +122,13 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               color: getObjectColor(obj.type),
             },
           ]);
-
+  
           if (navigator.vibrate) {
             navigator.vibrate(50);
           }
-
+  
           let pointsToAdd = 0;
-
+  
           switch (obj.type) {
             case "bomb":
               pointsToAdd = -15;
@@ -146,19 +146,20 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             default:
               pointsToAdd = 10;
           }
-
+  
           if (!gameOver) {
             setScore((prevScore) => prevScore + pointsToAdd);
             incrementPoints(pointsToAdd);
           }
-
+  
           return false;
         }
-
+  
         return obj.y <= 100;
       })
     );
   }, [playerX, incrementPoints, gameOver]);
+  
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
