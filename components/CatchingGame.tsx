@@ -103,19 +103,29 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.filter((obj) => {
-        // Kontrola, či objekt dopadol na platformu
-        const onPlatform =
-          obj.y + objectSize / 2 >= platformBottom && // Objekt je na úrovni platformy
-          obj.y - objectSize / 2 <= platformBottom + 2 && // Tolerancia okolo platformy
-          obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Objekt je vľavo na platforme
-          obj.x - objectSize / 2 <= playerX + platformWidth / 2; // Objekt je vpravo na platforme
+        // Predchádzajúca a nová pozícia objektu
+        const prevY = obj.y;
+        const newY = obj.y + fallingSpeed;
   
-        if (onPlatform) {
+        const objectLeft = obj.x - objectSize / 2;
+        const objectRight = obj.x + objectSize / 2;
+        const platformLeft = playerX - platformWidth / 2;
+        const platformRight = playerX + platformWidth / 2;
+  
+        // Overenie, či objekt prešiel platformou
+        const intersectsHorizontally =
+          objectRight >= platformLeft && objectLeft <= platformRight;
+        const intersectsVertically =
+          prevY + objectSize / 2 < platformBottom &&
+          newY + objectSize / 2 >= platformBottom;
+  
+        const caught = intersectsHorizontally && intersectsVertically;
+  
+        if (caught) {
           const effectX = (obj.x / 100) * window.innerWidth;
           const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
           const effectY = platformPixelHeight - 30;
   
-          // Generovanie efektu kolízie
           setCollisionEffects((prev) => [
             ...prev,
             {
@@ -132,7 +142,6 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   
           let pointsToAdd = 0;
   
-          // Priradenie bodov podľa typu objektu
           switch (obj.type) {
             case "bomb":
               pointsToAdd = -15;
@@ -156,13 +165,16 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             incrementPoints(pointsToAdd);
           }
   
-          return false; // Odstráni objekt zo zoznamu
+          return false; // Odstráni chytený objekt
         }
   
-        return obj.y <= 100; // Zachová objekty, ktoré sú stále na obrazovke
+        // Aktualizácia polohy objektu
+        obj.y = newY;
+        return newY <= 100; // Zachová objekty na obrazovke
       })
     );
-  }, [playerX, incrementPoints, gameOver]);
+  }, [playerX, incrementPoints, gameOver, fallingSpeed]);
+  
   
 
   useEffect(() => {
@@ -205,17 +217,25 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
         <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl relative">
           <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
           {gameState === "menu" && (
-            <div className="flex flex-col items-center justify-center h-full">
-              <Image src={rare} alt="Logo" width={200} height={200} className="mb-4" />
-              <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
-              <button
-                className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
-                onClick={() => setGameState("playing")}
-              >
-                Play
-              </button>
-            </div>
-          )}
+  <div className="flex flex-col items-center justify-center h-full">
+    <Image src={rare} alt="Logo" width={200} height={200} className="mb-4" />
+    <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
+    <div className="flex gap-4">
+      <button
+        className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
+        onClick={() => setGameState("playing")}
+      >
+        Play
+      </button>
+      <button
+        className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
+        onClick={() => setCurrentView("home")}
+      >
+        Back to Home Page
+      </button>
+    </div>
+  </div>
+)}
           {gameState === "playing" && (
             <div
               className="flex-grow bg-black z-0 relative overflow-hidden"
