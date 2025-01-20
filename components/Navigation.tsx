@@ -72,7 +72,11 @@ export default function Navigation({ currentView, setCurrentView }: NavigationPr
                             currentView === item.view ? 'text-white bg-black' : 'text-[#85827d]'
                         } h-16 m-1 p-2 rounded-none`}
                     >
-                        <div className="w-8 h-8 relative">
+                        <div
+                            className={`w-8 h-8 relative ${
+                                item.name === 'Catch' ? 'top-[-130px]' : ''
+                            }`} // Posun iba pre 'Catch'
+                        >
                             {item.image && (
                                 <div className="w-full h-full relative">
                                     <Image
@@ -85,7 +89,8 @@ export default function Navigation({ currentView, setCurrentView }: NavigationPr
                             )}
                             {item.icon && <item.icon className="w-full h-full" />}
                         </div>
-                        <p className="mt-1">{item.name}</p>
+                        {/* Text je vždy pod ikonou */}
+                        <p className="mt-2">{item.name}</p>
                     </div>
                 </button>
             ))}
