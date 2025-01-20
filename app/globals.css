@@ -120,3 +120,14 @@ image {
 .pulse-animation {
   animation: pulse 3s infinite ease-in-out;
 }
+
+@keyframes collision-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2); /* Zväčšenie na dvojnásobok */
+    opacity: 0; /* Úplne zmizne */
+  }
+}

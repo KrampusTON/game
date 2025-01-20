@@ -30,7 +30,7 @@ export const CollisionEffect: React.FC<CollisionEffectProps> = ({
         backgroundColor: color,
         borderRadius: "50%",
         transform: "translate(-50%, -50%) scale(1)",
-        animation: "pulse 0.5s ease-out forwards",
+        animation: "collision-pulse 0.5s ease-out forwards",
       }}
     />
   );
