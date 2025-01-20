@@ -124,7 +124,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
         if (caught) {
           // Spustenie vibrovania
           if (navigator.vibrate) {
-            navigator.vibrate(50);
+            navigator.vibrate(50); // Vibrácia na 50 ms
           }
   
           // Efekt kolízie
@@ -180,6 +180,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   
   
   
+  
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
@@ -195,7 +196,19 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
-
+  
+    const interval = setInterval(() => {
+      setFallingObjects((prev) =>
+        prev.map((obj) => ({ ...obj, y: obj.y + fallingSpeed })).filter((obj) => obj.y <= 100)
+      );
+    }, 50); // Aktualizácia objektov každých 50 ms
+  
+    return () => clearInterval(interval);
+  }, [fallingSpeed, gameState, gameOver]);
+  
+  useEffect(() => {
+    if (gameState !== "playing" || gameOver) return;
+  
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -203,17 +216,18 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           setGameState("gameOver");
           return 0;
         }
+  
+        // Zvýšenie rýchlosti každých 5 sekúnd
+        if (prev % 5 === 0) {
+          setFallingSpeed((speed) => Math.min(speed + 0.5, 10));
+          setSpawnDelay((delay) => Math.max(delay - 50, 300));
+        }
         return prev - 1;
       });
-
-      if (timeLeft % 5 === 0) {
-        setFallingSpeed((prev) => Math.min(prev + 0.5, 10));
-        setSpawnDelay((prev) => Math.max(prev - 50, 500));
-      }
-    }, 1000);
-
+    }, 1000); // Timer každú sekundu
+  
     return () => clearInterval(timer);
-  }, [timeLeft, gameState, gameOver]);
+  }, [gameState, gameOver]);
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden" style={{ touchAction: "none" }}>
