@@ -81,228 +81,119 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const [collisionEffects, setCollisionEffects] = useState<CollisionEffect[]>([]);
 
   const handleMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    const touch = e.touches[0];
-    const newX = (touch.clientX / window.innerWidth) * 100;
-    setPlayerX(Math.max(10, Math.min(90, newX))); // Aby hráč nemohol ísť príliš k okrajom
-    e.preventDefault();
-  };
+  e.preventDefault(); // Zabráni predvolenému správaniu, ako je scrollovanie
+  e.stopPropagation(); // Zastaví šírenie udalosti na nadradené elementy
+  const touch = e.touches[0];
+  const newX = (touch.clientX / window.innerWidth) * 100;
+  setPlayerX(Math.max(10, Math.min(90, newX))); // Obmedzí pohyb na hranice
+};
 
-  useEffect(() => {
-    if (gameState !== "playing" || gameOver) return;
-
-    const interval = setInterval(() => {
-      setFallingObjects((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          x: generateObjectXPosition(),
-          y: 0,
-          type: generateObjectType(),
-          isCaught: false,
-        },
-      ]);
-    }, spawnDelay);
-
-    return () => clearInterval(interval);
-  }, [spawnDelay, gameState, gameOver]);
-
-  useEffect(() => {
-    setFallingObjects((prev) =>
-      prev.filter((obj) => {
-        const onPlatform =
-          obj.y + objectSize / 2 >= platformBottom &&
-          obj.y - objectSize / 2 <= platformBottom + 2 &&
-          obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
-          obj.x - objectSize / 2 <= playerX + platformWidth / 2;
-
-        if (onPlatform) {
-          const effectX = (obj.x / 100) * window.innerWidth;
-          const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
-          const effectY = platformPixelHeight - 30;
-
-          setCollisionEffects((prev) => [
-            ...prev,
-            {
-              id: Date.now(),
-              x: effectX,
-              y: effectY,
-              color: getObjectColor(obj.type),
-            },
-          ]);
-
-          if (navigator.vibrate) {
-            navigator.vibrate(50);
-          }
-
-          let pointsToAdd = 0;
-
-          switch (obj.type) {
-            case "bomb":
-              pointsToAdd = -15;
-              break;
-            case "rare":
-              pointsToAdd = 15;
-              break;
-            case "blue":
-              pointsToAdd = 30;
-              break;
-            case "orange":
-              setGameOver(true);
-              setGameState("gameOver");
-              break;
-            default:
-              pointsToAdd = 10;
-          }
-
-          if (!gameOver) {
-            setScore((prevScore) => prevScore + pointsToAdd);
-            incrementPoints(pointsToAdd);
-          }
-
-          return false;
-        }
-
-        return obj.y <= 100;
-      })
-    );
-  }, [playerX, incrementPoints, gameOver]);
-
-  useEffect(() => {
-    if (gameState !== "playing" || gameOver) return;
-
-    const interval = setInterval(() => {
-      setFallingObjects((prev) =>
-        prev.map((obj) => ({ ...obj, y: obj.y + fallingSpeed })).filter((obj) => obj.y <= 100)
-      );
-    }, 50);
-
-    return () => clearInterval(interval);
-  }, [fallingSpeed, gameState, gameOver]);
-
-  useEffect(() => {
-    if (gameState !== "playing" || gameOver) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setGameOver(true);
-          setGameState("gameOver");
-          return 0;
-        }
-        return prev - 1;
-      });
-
-      if (timeLeft % 5 === 0) {
-        setFallingSpeed((prev) => Math.min(prev + 0.5, 10));
-        setSpawnDelay((prev) => Math.max(prev - 50, 500));
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft, gameState, gameOver]);
-
-  return (
-    <div className="fixed inset-0 bg-black overflow-hidden" style={{ touchAction: "none" }}>
-      <div className="w-full h-full flex justify-center items-center">
-        <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl relative">
-          <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
-          {gameState === "menu" && (
-            <div className="flex flex-col items-center justify-center h-full">
-              <Image src={coin} alt="Logo" width={200} height={200} className="mb-4" />
-              <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
-              <div className="flex flex-col gap-4">
-                <button
-                  className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
-                  onClick={() => setGameState("playing")}
-                >
-                  Play
-                </button>
-                <button
-                  className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
-                  onClick={() => setCurrentView("home")}
-                >
-                  Back to Home Page
-                </button>
-              </div>
+return (
+  <div
+    className="fixed inset-0 bg-black overflow-hidden"
+    style={{ touchAction: "none" }} // Zakáže predvolené dotykové gestá
+  >
+    <div className="w-full h-full flex justify-center items-center">
+      <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl relative">
+        <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
+        {gameState === "menu" && (
+          <div className="flex flex-col items-center justify-center h-full">
+            <Image src={coin} alt="Logo" width={200} height={200} className="mb-4" />
+            <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
+            <div className="flex flex-col gap-4">
+              <button
+                className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
+                onClick={() => setGameState("playing")}
+              >
+                Play
+              </button>
+              <button
+                className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
+                onClick={() => setCurrentView("home")}
+              >
+                Back to Home Page
+              </button>
             </div>
-          )}
-          {gameState === "playing" && (
+          </div>
+        )}
+        {gameState === "playing" && (
+          <div
+            className="flex-grow bg-black z-0 relative overflow-hidden"
+            onTouchStart={handleMove}
+            onTouchMove={handleMove}
+          >
             <div
-              className="flex-grow bg-black z-0 relative overflow-hidden"
-              onTouchStart={handleMove}
-              onTouchMove={handleMove}
-            >
-              <div
+              style={{
+                left: `${playerX - platformWidth / 2}%`,
+                width: `${platformWidth}%`,
+                height: "20px",
+                backgroundColor: "white",
+                transform: "translateX(0)",
+                bottom: "20%",
+                position: "absolute",
+              }}
+              className="platform"
+            />
+            {fallingObjects.map((obj) => (
+              <Image
+                key={obj.id}
+                src={objectImages[obj.type] || objectImages.default}
+                alt={obj.type}
+                width={45}
+                height={45}
                 style={{
-                  left: `${playerX - platformWidth / 2}%`,
-                  width: `${platformWidth}%`,
-                  height: "20px",
-                  backgroundColor: "white",
-                  transform: "translateX(0)",
-                  bottom: "20%",
                   position: "absolute",
+                  left: `${obj.x}%`,
+                  top: `${obj.y}%`,
                 }}
-                className="platform"
               />
-              {fallingObjects.map((obj) => (
-                <Image
-                  key={obj.id}
-                  src={objectImages[obj.type] || objectImages.default}
-                  alt={obj.type}
-                  width={45}
-                  height={45}
-                  style={{
-                    position: "absolute",
-                    left: `${obj.x}%`,
-                    top: `${obj.y}%`,
-                  }}
-                />
-              ))}
-              {collisionEffects.map((effect) => (
-                <CollisionEffect
-                  key={effect.id}
-                  x={effect.x}
-                  y={effect.y}
-                  color={effect.color}
-                  onComplete={() => {
-                    setCollisionEffects((prev) => prev.filter((e) => e.id !== effect.id));
-                  }}
-                />
-              ))}
-              <div className="absolute top-4 left-4 text-xl">{`Time: ${timeLeft}s`}</div>
-              <div className="absolute top-4 right-4 text-xl">{`Score: ${score}`}</div>
+            ))}
+            {collisionEffects.map((effect) => (
+              <CollisionEffect
+                key={effect.id}
+                x={effect.x}
+                y={effect.y}
+                color={effect.color}
+                onComplete={() => {
+                  setCollisionEffects((prev) => prev.filter((e) => e.id !== effect.id));
+                }}
+              />
+            ))}
+            <div className="absolute top-4 left-4 text-xl">{`Time: ${timeLeft}s`}</div>
+            <div className="absolute top-4 right-4 text-xl">{`Score: ${score}`}</div>
+          </div>
+        )}
+        {gameState === "gameOver" && (
+          <div className="flex flex-col items-center justify-center h-full">
+            <h1 className="text-3xl mb-4">Game Over!</h1>
+            <p className="text-xl mb-4">{`Your Score: ${score}`}</p>
+            <div className="flex gap-4">
+              <button
+                className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
+                onClick={() => {
+                  setGameState("menu");
+                  setScore(0);
+                  setTimeLeft(60);
+                  setGameOver(false);
+                  setFallingSpeed(2);
+                  setSpawnDelay(1000);
+                  setFallingObjects([]);
+                }}
+              >
+                Play again
+              </button>
+              <button
+                className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
+                onClick={() => setCurrentView("game")}
+              >
+                Back to Home
+              </button>
             </div>
-          )}
-          {gameState === "gameOver" && (
-            <div className="flex flex-col items-center justify-center h-full">
-              <h1 className="text-3xl mb-4">Game Over!</h1>
-              <p className="text-xl mb-4">{`Your Score: ${score}`}</p>
-              <div className="flex gap-4">
-                <button
-                  className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
-                  onClick={() => {
-                    setGameState("menu");
-                    setScore(0);
-                    setTimeLeft(60);
-                    setGameOver(false);
-                    setFallingSpeed(2);
-                    setSpawnDelay(1000);
-                    setFallingObjects([]);
-                  }}
-                >
-                  Play again
-                </button>
-                <button
-                  className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
-                  onClick={() => setCurrentView("game")}
-                >
-                  Back to Home
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
-  );
-}
+  </div>
+);
+
+  
