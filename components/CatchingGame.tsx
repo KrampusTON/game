@@ -104,11 +104,12 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.filter((obj) => {
+        // Kontrola, že objekt je nad platformou a jeho spodná hrana sa dotýka platformy
         const caught =
-          obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
+          obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Objekt sa nachádza v horizontálnom rozsahu platformy
           obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
-          obj.y + objectSize / 2 > platformBottom &&
-          obj.y - objectSize / 2 <= platformTop; // Kontrola, že objekt je nad platformou
+          obj.y + objectSize / 2 >= platformBottom && // Spodná hrana objektu dosiahla platformu
+          obj.y - objectSize / 2 < platformBottom; // Objekt neprešiel pod platformu
   
         if (caught) {
           const effectX = (obj.x / 100) * window.innerWidth;
@@ -136,10 +137,10 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               pointsToAdd = -15;
               break;
             case "rare":
-              pointsToAdd = 25;
+              pointsToAdd = 15;
               break;
             case "blue":
-              pointsToAdd = 50;
+              pointsToAdd = 30;
               break;
             case "orange":
               setGameOver(true);
@@ -161,6 +162,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
       })
     );
   }, [playerX, incrementPoints, gameOver]);
+  
   
   
   
