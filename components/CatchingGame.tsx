@@ -112,7 +112,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
         if (caught) {
           const effectX = (obj.x / 100) * window.innerWidth;
           const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
-          const effectY = platformPixelHeight - 30; // Upravené: umiestnite efekt presne nad platformu
+          const effectY = platformPixelHeight - 30; // Umiestnite efekt presne nad platformu
   
           setCollisionEffects((prev) => [
             ...prev,
@@ -123,6 +123,11 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               color: getObjectColor(obj.type),
             },
           ]);
+  
+          // Spustenie vibrovania
+          if (navigator.vibrate) {
+            navigator.vibrate(50); // Vibrácia na 50 ms
+          }
   
           let pointsToAdd = 0;
   
@@ -156,6 +161,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
       })
     );
   }, [playerX, incrementPoints, gameOver]);
+  
   
   
 
