@@ -103,16 +103,19 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.filter((obj) => {
-        const caught =
-          obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
-          obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
-          obj.y + objectSize / 2 > platformBottom;
+        // Kontrola, či objekt dopadol na platformu
+        const onPlatform =
+          obj.y + objectSize / 2 >= platformBottom && // Objekt je na úrovni platformy
+          obj.y - objectSize / 2 <= platformBottom + 2 && // Tolerancia okolo platformy
+          obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Objekt je vľavo na platforme
+          obj.x - objectSize / 2 <= playerX + platformWidth / 2; // Objekt je vpravo na platforme
   
-        if (caught || obj.y + objectSize / 2 >= platformBottom) {
+        if (onPlatform) {
           const effectX = (obj.x / 100) * window.innerWidth;
           const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
           const effectY = platformPixelHeight - 30;
   
+          // Generovanie efektu kolízie
           setCollisionEffects((prev) => [
             ...prev,
             {
@@ -129,6 +132,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   
           let pointsToAdd = 0;
   
+          // Priradenie bodov podľa typu objektu
           switch (obj.type) {
             case "bomb":
               pointsToAdd = -15;
@@ -152,10 +156,10 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             incrementPoints(pointsToAdd);
           }
   
-          return false;
+          return false; // Odstráni objekt zo zoznamu
         }
   
-        return obj.y <= 100;
+        return obj.y <= 100; // Zachová objekty, ktoré sú stále na obrazovke
       })
     );
   }, [playerX, incrementPoints, gameOver]);
