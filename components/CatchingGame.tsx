@@ -205,7 +205,3 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
     </div>
   );
 }
-// --- End of Code 1 ---
-
-// --- Start of Code 2 ---
-// Omitted for brevity, but merge similar blocks.
