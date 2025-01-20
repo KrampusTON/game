@@ -239,7 +239,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                   transform: "translateX(0)",
                   bottom: "20%",
                   position: "absolute",
-                  border: "2px solid red",
+                  border: "2px solid black",
                 }}
                 className="platform"
               />
