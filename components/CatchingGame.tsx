@@ -1,11 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image, { StaticImageData } from "next/image";
 import { useGameStore } from "@/utils/game-mechanics";
 import TopInfoSection from "@/components/TopInfoSection";
 import { bomb, rare, blue, orange, coin } from "@/images";
 import { CollisionEffect } from "@/components/CollisionEffect";
 
-// Interface definitions
 interface CollisionEffect {
   id: number;
   x: number;
@@ -41,10 +40,11 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [score, setScore] = useState<number>(0);
   const [timeLeft, setTimeLeft] = useState<number>(60);
-  const [fallingSpeed, setFallingSpeed] = useState<number>(2);
+  const [fallingSpeed, setFallingSpeed] = useState<number>(100); // Pixels per second
   const [spawnDelay, setSpawnDelay] = useState<number>(1000);
   const [gameState, setGameState] = useState<string>("menu");
   const [collisionEffects, setCollisionEffects] = useState<CollisionEffect[]>([]);
+  const lastUpdateRef = useRef<number>(performance.now());
 
   const handleMove = (e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
@@ -81,6 +81,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const platformWidth = 20;
   const platformBottom = 85;
 
+  // Spawn objects at intervals
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
 
@@ -100,29 +101,33 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
     return () => clearInterval(interval);
   }, [spawnDelay, gameState, gameOver]);
 
+  // Animate falling objects
   useEffect(() => {
-    if (gameState !== "playing" || gameOver) return;
-
-    const interval = setInterval(() => {
+    const animate = (currentTime: number) => {
+      if (gameState !== "playing" || gameOver) return;
+  
+      const deltaTime = (currentTime - lastUpdateRef.current) / 1000; // Sekundy od posledného snímku
+      lastUpdateRef.current = currentTime;
+  
       setFallingObjects((prev) =>
         prev.filter((obj) => {
-          obj.y += fallingSpeed;
-
+          obj.y += fallingSpeed * deltaTime;
+  
           const objectLeft = obj.x - objectSize / 2;
           const objectRight = obj.x + objectSize / 2;
           const platformLeft = playerX - platformWidth / 2;
           const platformRight = playerX + platformWidth / 2;
-
+  
           const caught =
             obj.y + objectSize / 2 >= platformBottom &&
             objectLeft <= platformRight &&
             objectRight >= platformLeft;
-
+  
           if (caught) {
             const effectX = (obj.x / 100) * window.innerWidth;
             const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
             const effectY = platformPixelHeight - 30;
-
+  
             setCollisionEffects((prev) => [
               ...prev,
               {
@@ -132,13 +137,13 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                 color: getObjectColor(obj.type),
               },
             ]);
-
+  
             if (navigator.vibrate) {
               navigator.vibrate(50);
             }
-
+  
             let pointsToAdd = 0;
-
+  
             switch (obj.type) {
               case "bomb":
                 pointsToAdd = -15;
@@ -156,44 +161,28 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               default:
                 pointsToAdd = 10;
             }
-
+  
             if (!gameOver) {
               setScore((prevScore) => prevScore + pointsToAdd);
               incrementPoints(pointsToAdd);
             }
-
-            return false; // Remove the object
+  
+            return false;
           }
-
-          return obj.y <= 100; // Remove if out of screen
+  
+          return obj.y <= 100;
         })
       );
-    }, 50);
-
-    return () => clearInterval(interval);
+  
+      requestAnimationFrame(animate); // Správne zaregistrujte ďalší snímok
+    };
+  
+    lastUpdateRef.current = performance.now();
+    const animationId = requestAnimationFrame(animate);
+  
+    return () => cancelAnimationFrame(animationId); // Zrušenie animácie pri demontáži
   }, [playerX, incrementPoints, fallingSpeed, gameState, gameOver]);
-
-  useEffect(() => {
-    if (gameState !== "playing" || gameOver) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setGameOver(true);
-          setGameState("gameOver");
-          return 0;
-        }
-        return prev - 1;
-      });
-
-      if (timeLeft % 5 === 0) {
-        setFallingSpeed((prev) => Math.min(prev + 0.5, 10));
-        setSpawnDelay((prev) => Math.max(prev - 50, 500));
-      }
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [timeLeft, gameState, gameOver]);
+  
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden" style={{ touchAction: "none" }}>
@@ -272,7 +261,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                     setScore(0);
                     setTimeLeft(60);
                     setGameOver(false);
-                    setFallingSpeed(2);
+                    setFallingSpeed(100);
                     setSpawnDelay(1000);
                     setFallingObjects([]);
                   }}
