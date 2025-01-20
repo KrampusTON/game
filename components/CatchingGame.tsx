@@ -34,6 +34,40 @@ const objectImages: { [key: string]: StaticImageData } = {
   default: coin,
 };
 
+const generateObjectType = (): string => {
+  const randomType = Math.random();
+  if (randomType < 0.2) return "bomb";
+  if (randomType < 0.35) return "rare";
+  if (randomType < 0.45) return "blue";
+  if (randomType < 0.55) return "orange";
+  return "default";
+};
+
+const getObjectColor = (type: string): string => {
+  switch (type) {
+    case "bomb":
+      return "#ff0000";
+    case "rare":
+      return "#ffd700";
+    case "blue":
+      return "#0000ff";
+    case "orange":
+      return "#ffa500";
+    default:
+      return "#ffff00";
+  }
+};
+
+const generateObjectXPosition = (): number => {
+  const minX = 10; // Aby objekty neboli príliš blízko okrajom
+  const maxX = 90;
+  return Math.random() * (maxX - minX) + minX;
+};
+
+const objectSize = 4.5;
+const platformWidth = 20;
+const platformBottom = 85;
+
 export default function CatchingGame({ currentView, setCurrentView }: CatchingGameProps) {
   const { incrementPoints } = useGameStore();
   const [playerX, setPlayerX] = useState<number>(50);
@@ -49,37 +83,9 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const handleMove = (e: React.TouchEvent<HTMLDivElement>) => {
     const touch = e.touches[0];
     const newX = (touch.clientX / window.innerWidth) * 100;
-    setPlayerX(Math.max(10, Math.min(90, newX)));
+    setPlayerX(Math.max(10, Math.min(90, newX))); // Aby hráč nemohol ísť príliš k okrajom
     e.preventDefault();
   };
-
-  const generateObjectType = (): string => {
-    const randomType = Math.random();
-    if (randomType < 0.2) return "bomb";
-    if (randomType < 0.35) return "rare";
-    if (randomType < 0.45) return "blue";
-    if (randomType < 0.55) return "orange";
-    return "default";
-  };
-
-  const getObjectColor = (type: string): string => {
-    switch (type) {
-      case "bomb":
-        return "#ff0000";
-      case "rare":
-        return "#ffd700";
-      case "blue":
-        return "#0000ff";
-      case "orange":
-        return "#ffa500";
-      default:
-        return "#ffff00";
-    }
-  };
-
-  const objectSize = 4.5;
-  const platformWidth = 20;
-  const platformBottom = 85;
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
@@ -89,7 +95,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
         ...prev,
         {
           id: Date.now(),
-          x: Math.random() * 100,
+          x: generateObjectXPosition(),
           y: 0,
           type: generateObjectType(),
           isCaught: false,
@@ -103,19 +109,17 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.filter((obj) => {
-        // Kontrola, či objekt dopadol na platformu
         const onPlatform =
-          obj.y + objectSize / 2 >= platformBottom && // Objekt je na úrovni platformy
-          obj.y - objectSize / 2 <= platformBottom + 2 && // Tolerancia okolo platformy
-          obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Objekt je vľavo na platforme
-          obj.x - objectSize / 2 <= playerX + platformWidth / 2; // Objekt je vpravo na platforme
-  
+          obj.y + objectSize / 2 >= platformBottom &&
+          obj.y - objectSize / 2 <= platformBottom + 2 &&
+          obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
+          obj.x - objectSize / 2 <= playerX + platformWidth / 2;
+
         if (onPlatform) {
           const effectX = (obj.x / 100) * window.innerWidth;
           const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
           const effectY = platformPixelHeight - 30;
-  
-          // Generovanie efektu kolízie
+
           setCollisionEffects((prev) => [
             ...prev,
             {
@@ -125,14 +129,13 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               color: getObjectColor(obj.type),
             },
           ]);
-  
+
           if (navigator.vibrate) {
             navigator.vibrate(50);
           }
-  
+
           let pointsToAdd = 0;
-  
-          // Priradenie bodov podľa typu objektu
+
           switch (obj.type) {
             case "bomb":
               pointsToAdd = -15;
@@ -150,20 +153,19 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             default:
               pointsToAdd = 10;
           }
-  
+
           if (!gameOver) {
             setScore((prevScore) => prevScore + pointsToAdd);
             incrementPoints(pointsToAdd);
           }
-  
-          return false; // Odstráni objekt zo zoznamu
+
+          return false;
         }
-  
-        return obj.y <= 100; // Zachová objekty, ktoré sú stále na obrazovke
+
+        return obj.y <= 100;
       })
     );
   }, [playerX, incrementPoints, gameOver]);
-  
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
@@ -205,25 +207,25 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
         <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl relative">
           <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
           {gameState === "menu" && (
-  <div className="flex flex-col items-center justify-center h-full">
-    <Image src={coin} alt="Logo" width={200} height={200} className="mb-4" />
-    <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
-    <div className="flex flex-col gap-4">
-      <button
-        className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
-        onClick={() => setGameState("playing")}
-      >
-        Play
-      </button>
-      <button
-        className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
-        onClick={() => setCurrentView("home")}
-      >
-        Back to Home Page
-      </button>
-    </div>
-  </div>
-)}
+            <div className="flex flex-col items-center justify-center h-full">
+              <Image src={coin} alt="Logo" width={200} height={200} className="mb-4" />
+              <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
+              <div className="flex flex-col gap-4">
+                <button
+                  className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
+                  onClick={() => setGameState("playing")}
+                >
+                  Play
+                </button>
+                <button
+                  className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
+                  onClick={() => setCurrentView("home")}
+                >
+                  Back to Home Page
+                </button>
+              </div>
+            </div>
+          )}
           {gameState === "playing" && (
             <div
               className="flex-grow bg-black z-0 relative overflow-hidden"
