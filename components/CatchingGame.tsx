@@ -103,35 +103,16 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.filter((obj) => {
-        // Výpočty pre aktuálne a predchádzajúce pozície objektu
-        const prevY = obj.y;
-        const newY = obj.y + fallingSpeed;
-  
-        const objectLeft = obj.x - objectSize / 2;
-        const objectRight = obj.x + objectSize / 2;
-        const platformLeft = playerX - platformWidth / 2;
-        const platformRight = playerX + platformWidth / 2;
-  
-        const intersectsHorizontally =
-          objectRight >= platformLeft && objectLeft <= platformRight;
-  
-        const intersectsVertically =
-          prevY + objectSize / 2 < platformBottom &&
-          newY + objectSize / 2 >= platformBottom;
-  
-        const caught = intersectsHorizontally && intersectsVertically;
-  
+        const caught =
+          obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
+          obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
+          obj.y + objectSize / 2 > platformBottom;
+
         if (caught) {
-          // Spustenie vibrovania
-          if (navigator.vibrate) {
-            navigator.vibrate(50); // Vibrácia na 50 ms
-          }
-  
-          // Efekt kolízie
           const effectX = (obj.x / 100) * window.innerWidth;
           const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
           const effectY = platformPixelHeight - 30;
-  
+
           setCollisionEffects((prev) => [
             ...prev,
             {
@@ -141,19 +122,22 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               color: getObjectColor(obj.type),
             },
           ]);
-  
-          // Pridanie bodov a logika typu objektu
+
+          if (navigator.vibrate) {
+            navigator.vibrate(50);
+          }
+
           let pointsToAdd = 0;
-  
+
           switch (obj.type) {
             case "bomb":
               pointsToAdd = -15;
               break;
             case "rare":
-              pointsToAdd = 15;
+              pointsToAdd = 25;
               break;
             case "blue":
-              pointsToAdd = 30;
+              pointsToAdd = 50;
               break;
             case "orange":
               setGameOver(true);
@@ -162,25 +146,19 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             default:
               pointsToAdd = 10;
           }
-  
+
           if (!gameOver) {
             setScore((prevScore) => prevScore + pointsToAdd);
             incrementPoints(pointsToAdd);
           }
-  
-          return false; // Odstráni chytený objekt
+
+          return false;
         }
-  
-        // Aktualizácia polohy objektu
-        obj.y = newY;
-        return newY <= 100; // Odstráni objekty mimo obrazovky
+
+        return obj.y <= 100;
       })
     );
-  }, [playerX, incrementPoints, gameOver, fallingSpeed]);
-  
-  
-  
-  
+  }, [playerX, incrementPoints, gameOver]);
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
@@ -196,19 +174,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
-  
-    const interval = setInterval(() => {
-      setFallingObjects((prev) =>
-        prev.map((obj) => ({ ...obj, y: obj.y + fallingSpeed })).filter((obj) => obj.y <= 100)
-      );
-    }, 50); // Aktualizácia objektov každých 50 ms
-  
-    return () => clearInterval(interval);
-  }, [fallingSpeed, gameState, gameOver]);
-  
-  useEffect(() => {
-    if (gameState !== "playing" || gameOver) return;
-  
+
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -216,18 +182,17 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           setGameState("gameOver");
           return 0;
         }
-  
-        // Zvýšenie rýchlosti každých 5 sekúnd
-        if (prev % 5 === 0) {
-          setFallingSpeed((speed) => Math.min(speed + 0.5, 10));
-          setSpawnDelay((delay) => Math.max(delay - 50, 300));
-        }
         return prev - 1;
       });
-    }, 1000); // Timer každú sekundu
-  
+
+      if (timeLeft % 5 === 0) {
+        setFallingSpeed((prev) => Math.min(prev + 0.5, 10));
+        setSpawnDelay((prev) => Math.max(prev - 50, 500));
+      }
+    }, 1000);
+
     return () => clearInterval(timer);
-  }, [gameState, gameOver]);
+  }, [timeLeft, gameState, gameOver]);
 
   return (
     <div className="fixed inset-0 bg-black overflow-hidden" style={{ touchAction: "none" }}>
@@ -236,22 +201,14 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
           {gameState === "menu" && (
             <div className="flex flex-col items-center justify-center h-full">
-              <Image src={coin} alt="Logo" width={200} height={200} className="mb-4" />
+              <Image src={rare} alt="Logo" width={200} height={200} className="mb-4" />
               <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
-              <div className="flex gap-4">
-                <button
-                  className="bg-white text-black px-6 py-2 rounded-md text-lg"
-                  onClick={() => setGameState("playing")}
-                >
-                  Play
-                </button>
-                <button
-                  className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
-                  onClick={() => setCurrentView("home")}
-                >
-                  Back to Home
-                </button>
-              </div>
+              <button
+                className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
+                onClick={() => setGameState("playing")}
+              >
+                Play
+              </button>
             </div>
           )}
           {gameState === "playing" && (
@@ -267,9 +224,9 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                   height: "20px",
                   backgroundColor: "white",
                   transform: "translateX(0)",
-                  bottom: "20%",
+                  bottom: "15%",
                   position: "absolute",
-                  border: "2px solid black",
+                  border: "2px solid red",
                 }}
                 className="platform"
               />
@@ -308,7 +265,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               <p className="text-xl mb-4">{`Your Score: ${score}`}</p>
               <div className="flex gap-4">
                 <button
-                  className="bg-white text-black px-6 py-2 rounded-md text-lg"
+                  className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
                   onClick={() => {
                     setGameState("menu");
                     setScore(0);
@@ -320,16 +277,16 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                   }}
                 >
                   Play again
-      </button>
-      <button
-        className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
-        onClick={() => setCurrentView('game')}
-      >
-        Back to Home
-      </button>
-    </div>
-  </div>
-)}
+                </button>
+                <button
+                  className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
+                  onClick={() => setCurrentView("game")}
+                >
+                  Back to Home
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
