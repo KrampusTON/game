@@ -112,7 +112,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
         if (caught) {
           const effectX = (obj.x / 100) * window.innerWidth;
           const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
-          const effectY = platformPixelHeight - 30; // Umiestnite efekt presne nad platformu
+          const effectY = platformPixelHeight - 35; // Umiestnite efekt presne nad platformu
   
           setCollisionEffects((prev) => [
             ...prev,
@@ -133,13 +133,13 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   
           switch (obj.type) {
             case "bomb":
-              pointsToAdd = -15;
+              pointsToAdd = -20;
               break;
             case "rare":
-              pointsToAdd = 25;
+              pointsToAdd = 15;
               break;
             case "blue":
-              pointsToAdd = 50;
+              pointsToAdd = 30;
               break;
             case "orange":
               setGameOver(true);

@@ -24,7 +24,7 @@ export const CollisionEffect: React.FC<CollisionEffectProps> = ({
       style={{
         position: "absolute",
         left: x,
-        top: y - 30, // Jemný posun efektu nad platformu
+        top: y - 35, // Jemný posun efektu nad platformu
         width: "50px",
         height: "50px",
         backgroundColor: color,
