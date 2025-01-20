@@ -103,21 +103,30 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.filter((obj) => {
-        // Vypočítanie hrán platformy a objektu
+        // Výpočty pre aktuálne a predchádzajúce pozície objektu
+        const prevY = obj.y;
+        const newY = obj.y + fallingSpeed;
+  
         const objectLeft = obj.x - objectSize / 2;
         const objectRight = obj.x + objectSize / 2;
         const platformLeft = playerX - platformWidth / 2;
         const platformRight = playerX + platformWidth / 2;
   
-        const isInHorizontalRange =
+        const intersectsHorizontally =
           objectRight >= platformLeft && objectLeft <= platformRight;
-        const isTouchingPlatform =
-          obj.y + objectSize / 2 >= platformBottom &&
-          obj.y - objectSize / 2 < platformBottom;
   
-        const caught = isInHorizontalRange && isTouchingPlatform;
+        const intersectsVertically =
+          prevY + objectSize / 2 < platformBottom &&
+          newY + objectSize / 2 >= platformBottom;
+  
+        const caught = intersectsHorizontally && intersectsVertically;
   
         if (caught) {
+          // Spustenie vibrovania
+          if (navigator.vibrate) {
+            navigator.vibrate(50);
+          }
+  
           // Efekt kolízie
           const effectX = (obj.x / 100) * window.innerWidth;
           const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
@@ -162,10 +171,14 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           return false; // Odstráni chytený objekt
         }
   
-        return obj.y <= 100; // Odstráni objekty mimo obrazovky
+        // Aktualizácia polohy objektu
+        obj.y = newY;
+        return newY <= 100; // Odstráni objekty mimo obrazovky
       })
     );
-  }, [playerX, incrementPoints, gameOver]);
+  }, [playerX, incrementPoints, gameOver, fallingSpeed]);
+  
+  
   
 
   useEffect(() => {
