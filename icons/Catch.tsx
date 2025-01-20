@@ -1,7 +1,7 @@
 import { IconProps } from "../utils/types";
 
-const Catch: React.FC<IconProps> = ({ size = 300, className = "" }) => {
-    const imageUrl = "https://i.postimg.cc/DzSHRX5S/sdad.png"; // Tvoj odkaz na PNG obrázok
+const Catch: React.FC<IconProps> = ({ width = 200, height = 200, className = "" }) => {
+    const imageUrl = "https://i.postimg.cc/7Zm3hjLp/Sn-mka-obrazovky-2025-01-20-215422.png"; // Tvoj odkaz na PNG obrázok
 
     return (
         <img
@@ -9,8 +9,8 @@ const Catch: React.FC<IconProps> = ({ size = 300, className = "" }) => {
             alt="Catch Icon"
             className={className}
             style={{
-                width: `${size}px`,
-                height: `${size}px`,
+                width: `${width}px`,
+                height: `${height}px`,
                 objectFit: "contain", // Umožňuje správne proporcie
             }}
         />

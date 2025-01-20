@@ -1,5 +1,3 @@
-// utils/types.ts.ts
-
 /**
  * This project was developed by PeGoverse.
  * You may not use this code if you purchased it from any source other than the official website https://PeGo.com.
@@ -15,8 +13,10 @@
 
 export type IconProps = {
     size?: number;
+    width?: number; // Šírka ikony
+    height?: number; // Výška ikony
     className?: string;
-}
+};
 
 export interface Task {
     id: string;
