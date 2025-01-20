@@ -6,7 +6,7 @@ import Friends from '@/icons/Friends';
 import Coins from '@/icons/Coins';
 import { iceToken } from '@/images';
 import IceCube from '@/icons/IceCube';
-import Rocket from '@/icons/Rocket'; // Ikona pre CatchingGame
+import Catch from '@/icons/Catch'; // Importujte Catch ikonu
 import { FC } from 'react';
 import { IconProps } from '@/utils/types';
 import { triggerHapticFeedback } from '@/utils/ui';
@@ -20,7 +20,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
     { name: 'Game', icon: IceCube, view: 'game' },
-    { name: 'Catch', icon: Rocket, view: 'catch' }, // Nová položka pre CatchingGame
+    { name: 'Catch', icon: Catch, view: 'catch' },
     { name: 'Mine', icon: Mine, view: 'mine' },
     { name: 'Friends', icon: Friends, view: 'friends' },
     { name: 'Earn', icon: Coins, view: 'earn' },

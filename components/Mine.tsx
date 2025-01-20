@@ -91,7 +91,7 @@ export default function Mine({ setCurrentView }: MineProps) {
                 <div className="flex-grow mt-4 bg-black z-0">
                     <div className="mt-[2px] bg-black h-full overflow-y-auto no-scrollbar">
                         <div className="px-4 pt-1 pb-24">
-                            <h1 className="text-2xl text-center mt-4">Upgrade Hamster Production</h1>
+                            <h1 className="text-2xl text-center mt-4">Upgrade PeGo Production</h1>
 
                             <div className="px-4 mt-4 flex justify-center">
                                 <div className="px-4 py-2 flex items-center space-x-2">

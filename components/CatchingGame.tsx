@@ -107,12 +107,13 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
         const caught =
           obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
           obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
-          obj.y + objectSize / 2 > platformBottom;
+          obj.y + objectSize / 2 > platformBottom &&
+          obj.y - objectSize / 2 <= platformTop; // Kontrola, že objekt je nad platformou
   
         if (caught) {
           const effectX = (obj.x / 100) * window.innerWidth;
           const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
-          const effectY = platformPixelHeight - 35; // Umiestnite efekt presne nad platformu
+          const effectY = platformPixelHeight - 30;
   
           setCollisionEffects((prev) => [
             ...prev,
@@ -124,22 +125,21 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             },
           ]);
   
-          // Spustenie vibrovania
           if (navigator.vibrate) {
-            navigator.vibrate(50); // Vibrácia na 50 ms
+            navigator.vibrate(50);
           }
   
           let pointsToAdd = 0;
   
           switch (obj.type) {
             case "bomb":
-              pointsToAdd = -20;
+              pointsToAdd = -15;
               break;
             case "rare":
-              pointsToAdd = 15;
+              pointsToAdd = 25;
               break;
             case "blue":
-              pointsToAdd = 30;
+              pointsToAdd = 50;
               break;
             case "orange":
               setGameOver(true);
@@ -154,10 +154,10 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             incrementPoints(pointsToAdd);
           }
   
-          return false; // Odstráňte chytený objekt
+          return false; // Odstráni chytený objekt
         }
   
-        return obj.y <= 100; // Odstráňte objekty, ktoré spadli mimo obrazovky
+        return obj.y <= 100; // Odstráni objekty, ktoré sú mimo obrazovky
       })
     );
   }, [playerX, incrementPoints, gameOver]);
@@ -206,7 +206,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
           {gameState === "menu" && (
   <div className="flex flex-col items-center justify-center h-full">
-    <Image src={rare} alt="Logo" width={200} height={200} className="mb-4" />
+    <Image src={coin} alt="Logo" width={200} height={200} className="mb-4" />
     <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
     <div className="flex gap-4">
       <button

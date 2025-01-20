@@ -65,29 +65,27 @@ export default function Settings({ setCurrentView }: SettingsProps) {
     return (
         <div className="bg-black flex justify-center min-h-screen">
             <div className="w-full bg-black text-white font-bold flex flex-col max-w-xl">
-                <div className="flex-grow mt-4 bg-[#f3ba2f] rounded-t-[48px] relative top-glow z-0">
-                    <div className="mt-[2px] bg-[#1d2025] rounded-t-[46px] h-full overflow-y-auto no-scrollbar">
-                        <div className="px-4 pt-1 pb-24">
-                            <h1 className="text-2xl text-center mt-4">Settings</h1>
+                <div className="flex-grow mt-4 bg-[#000000] h-full overflow-y-auto no-scrollbar">
+                    <div className="px-4 pt-1 pb-24">
+                        <h1 className="text-2xl text-center mt-4">Settings</h1>
 
-                            <div className="bg-[#272a2f] rounded-lg p-4 mt-6">
-                                <div className="flex justify-between items-center mb-4">
-                                    <p>Touch vibration</p>
-                                    <Toggle enabled={vibrationEnabled} setEnabled={handleVibrationToggle} />
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <p>Floating points animation</p>
-                                    <Toggle enabled={animationEnabled} setEnabled={handleAnimationToggle} />
-                                </div>
+                        <div className="bg-[#272a2f] rounded-lg p-4 mt-6">
+                            <div className="flex justify-between items-center mb-4">
+                                <p>Touch vibration</p>
+                                <Toggle enabled={vibrationEnabled} setEnabled={handleVibrationToggle} />
                             </div>
-
-                            <button
-                                onClick={handleBackToGame}
-                                className="mx-auto block mt-4 text-center text-[#f3ba2f]"
-                            >
-                                Back to Game
-                            </button>
+                            <div className="flex justify-between items-center">
+                                <p>Floating points animation</p>
+                                <Toggle enabled={animationEnabled} setEnabled={handleAnimationToggle} />
+                            </div>
                         </div>
+
+                        <button
+                            onClick={handleBackToGame}
+                            className="mx-auto block mt-4 text-center text-white"
+                        >
+                            Back to Game
+                        </button>
                     </div>
                 </div>
             </div>

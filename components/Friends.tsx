@@ -194,11 +194,11 @@ export default function Friends() {
                         <div className="flex items-center justify-between flex-1">
                           <div className="flex items-center mr-4">
                             <IceCube className="w-4 h-4 mr-1" />
-                            <span className="text-yellow-400">+{formatNumber(level.friendBonus)}</span>
+                            <span className="text-xs text-yellow-400">+{formatNumber(level.friendBonus)}</span>
                           </div>
                           <div className="flex items-center">
                             <IceCube className="w-4 h-4 mr-1" />
-                            <span className="text-yellow-400">+{formatNumber(level.friendBonusPremium)}</span>
+                            <span className="text-xs text-yellow-400">+{formatNumber(level.friendBonusPremium)}</span>
                           </div>
                         </div>
                       </div>
