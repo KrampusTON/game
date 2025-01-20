@@ -103,17 +103,19 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.filter((obj) => {
+        // Kontrola, či objekt dopadol na platformu
         const onPlatform =
-          obj.y + objectSize / 2 >= platformBottom &&
-          obj.y - objectSize / 2 <= platformBottom + 2 &&
-          obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
-          obj.x - objectSize / 2 <= playerX + platformWidth / 2;
-
+          obj.y + objectSize / 2 >= platformBottom && // Objekt je na úrovni platformy
+          obj.y - objectSize / 2 <= platformBottom + 2 && // Tolerancia okolo platformy
+          obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Objekt je vľavo na platforme
+          obj.x - objectSize / 2 <= playerX + platformWidth / 2; // Objekt je vpravo na platforme
+  
         if (onPlatform) {
           const effectX = (obj.x / 100) * window.innerWidth;
           const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
           const effectY = platformPixelHeight - 30;
-
+  
+          // Generovanie efektu kolízie
           setCollisionEffects((prev) => [
             ...prev,
             {
@@ -123,13 +125,14 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               color: getObjectColor(obj.type),
             },
           ]);
-
+  
           if (navigator.vibrate) {
             navigator.vibrate(50);
           }
-
+  
           let pointsToAdd = 0;
-
+  
+          // Priradenie bodov podľa typu objektu
           switch (obj.type) {
             case "bomb":
               pointsToAdd = -15;
@@ -147,19 +150,20 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             default:
               pointsToAdd = 10;
           }
-
+  
           if (!gameOver) {
             setScore((prevScore) => prevScore + pointsToAdd);
             incrementPoints(pointsToAdd);
           }
-
-          return false;
+  
+          return false; // Odstráni objekt zo zoznamu
         }
-
-        return obj.y <= 100;
+  
+        return obj.y <= 100; // Zachová objekty, ktoré sú stále na obrazovke
       })
     );
   }, [playerX, incrementPoints, gameOver]);
+  
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
@@ -200,6 +204,101 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
       <div className="w-full h-full flex justify-center items-center">
         <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl relative">
           <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
+          {gameState === "menu" && (
+  <div className="flex flex-col items-center justify-center h-full">
+    <Image src={coin} alt="Logo" width={200} height={200} className="mb-4" />
+    <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
+    <div className="flex flex-col gap-4">
+      <button
+        className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
+        onClick={() => setGameState("playing")}
+      >
+        Play
+      </button>
+      <button
+        className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
+        onClick={() => setCurrentView("home")}
+      >
+        Back to Home Page
+      </button>
+    </div>
+  </div>
+)}
+          {gameState === "playing" && (
+            <div
+              className="flex-grow bg-black z-0 relative overflow-hidden"
+              onTouchStart={handleMove}
+              onTouchMove={handleMove}
+            >
+              <div
+                style={{
+                  left: `${playerX - platformWidth / 2}%`,
+                  width: `${platformWidth}%`,
+                  height: "20px",
+                  backgroundColor: "white",
+                  transform: "translateX(0)",
+                  bottom: "20%",
+                  position: "absolute",
+                }}
+                className="platform"
+              />
+              {fallingObjects.map((obj) => (
+                <Image
+                  key={obj.id}
+                  src={objectImages[obj.type] || objectImages.default}
+                  alt={obj.type}
+                  width={45}
+                  height={45}
+                  style={{
+                    position: "absolute",
+                    left: `${obj.x}%`,
+                    top: `${obj.y}%`,
+                  }}
+                />
+              ))}
+              {collisionEffects.map((effect) => (
+                <CollisionEffect
+                  key={effect.id}
+                  x={effect.x}
+                  y={effect.y}
+                  color={effect.color}
+                  onComplete={() => {
+                    setCollisionEffects((prev) => prev.filter((e) => e.id !== effect.id));
+                  }}
+                />
+              ))}
+              <div className="absolute top-4 left-4 text-xl">{`Time: ${timeLeft}s`}</div>
+              <div className="absolute top-4 right-4 text-xl">{`Score: ${score}`}</div>
+            </div>
+          )}
+          {gameState === "gameOver" && (
+            <div className="flex flex-col items-center justify-center h-full">
+              <h1 className="text-3xl mb-4">Game Over!</h1>
+              <p className="text-xl mb-4">{`Your Score: ${score}`}</p>
+              <div className="flex gap-4">
+                <button
+                  className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
+                  onClick={() => {
+                    setGameState("menu");
+                    setScore(0);
+                    setTimeLeft(60);
+                    setGameOver(false);
+                    setFallingSpeed(2);
+                    setSpawnDelay(1000);
+                    setFallingObjects([]);
+                  }}
+                >
+                  Play again
+                </button>
+                <button
+                  className="bg-gray-500 text-white px-6 py-2 rounded-md text-lg"
+                  onClick={() => setCurrentView("game")}
+                >
+                  Back to Home
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
