@@ -103,17 +103,26 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.filter((obj) => {
-        const caught =
-          obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
-          obj.x - objectSize / 2 <= playerX + platformWidth / 2 &&
+        // Vypočítanie hrán platformy a objektu
+        const objectLeft = obj.x - objectSize / 2;
+        const objectRight = obj.x + objectSize / 2;
+        const platformLeft = playerX - platformWidth / 2;
+        const platformRight = playerX + platformWidth / 2;
+  
+        const isInHorizontalRange =
+          objectRight >= platformLeft && objectLeft <= platformRight;
+        const isTouchingPlatform =
           obj.y + objectSize / 2 >= platformBottom &&
           obj.y - objectSize / 2 < platformBottom;
-
+  
+        const caught = isInHorizontalRange && isTouchingPlatform;
+  
         if (caught) {
+          // Efekt kolízie
           const effectX = (obj.x / 100) * window.innerWidth;
           const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
           const effectY = platformPixelHeight - 30;
-
+  
           setCollisionEffects((prev) => [
             ...prev,
             {
@@ -123,13 +132,10 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               color: getObjectColor(obj.type),
             },
           ]);
-
-          if (navigator.vibrate) {
-            navigator.vibrate(50);
-          }
-
+  
+          // Pridanie bodov a logika typu objektu
           let pointsToAdd = 0;
-
+  
           switch (obj.type) {
             case "bomb":
               pointsToAdd = -15;
@@ -147,19 +153,20 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             default:
               pointsToAdd = 10;
           }
-
+  
           if (!gameOver) {
             setScore((prevScore) => prevScore + pointsToAdd);
             incrementPoints(pointsToAdd);
           }
-
+  
           return false; // Odstráni chytený objekt
         }
-
+  
         return obj.y <= 100; // Odstráni objekty mimo obrazovky
       })
     );
   }, [playerX, incrementPoints, gameOver]);
+  
 
   useEffect(() => {
     if (gameState !== "playing" || gameOver) return;
