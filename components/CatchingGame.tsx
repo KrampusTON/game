@@ -103,29 +103,19 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   useEffect(() => {
     setFallingObjects((prev) =>
       prev.filter((obj) => {
-        // Predchádzajúca a nová pozícia objektu
-        const prevY = obj.y;
-        const newY = obj.y + fallingSpeed;
+        // Kontrola, či objekt dopadol na platformu
+        const onPlatform =
+          obj.y + objectSize / 2 >= platformBottom && // Objekt je na úrovni platformy
+          obj.y - objectSize / 2 <= platformBottom + 2 && // Tolerancia okolo platformy
+          obj.x + objectSize / 2 >= playerX - platformWidth / 2 && // Objekt je vľavo na platforme
+          obj.x - objectSize / 2 <= playerX + platformWidth / 2; // Objekt je vpravo na platforme
   
-        const objectLeft = obj.x - objectSize / 2;
-        const objectRight = obj.x + objectSize / 2;
-        const platformLeft = playerX - platformWidth / 2;
-        const platformRight = playerX + platformWidth / 2;
-  
-        // Overenie, či objekt prešiel platformou
-        const intersectsHorizontally =
-          objectRight >= platformLeft && objectLeft <= platformRight;
-        const intersectsVertically =
-          prevY + objectSize / 2 < platformBottom &&
-          newY + objectSize / 2 >= platformBottom;
-  
-        const caught = intersectsHorizontally && intersectsVertically;
-  
-        if (caught) {
+        if (onPlatform) {
           const effectX = (obj.x / 100) * window.innerWidth;
           const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
           const effectY = platformPixelHeight - 30;
   
+          // Generovanie efektu kolízie
           setCollisionEffects((prev) => [
             ...prev,
             {
@@ -142,6 +132,7 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   
           let pointsToAdd = 0;
   
+          // Priradenie bodov podľa typu objektu
           switch (obj.type) {
             case "bomb":
               pointsToAdd = -15;
@@ -165,16 +156,13 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
             incrementPoints(pointsToAdd);
           }
   
-          return false; // Odstráni chytený objekt
+          return false; // Odstráni objekt zo zoznamu
         }
   
-        // Aktualizácia polohy objektu
-        obj.y = newY;
-        return newY <= 100; // Zachová objekty na obrazovke
+        return obj.y <= 100; // Zachová objekty, ktoré sú stále na obrazovke
       })
     );
-  }, [playerX, incrementPoints, gameOver, fallingSpeed]);
-  
+  }, [playerX, incrementPoints, gameOver]);
   
 
   useEffect(() => {
