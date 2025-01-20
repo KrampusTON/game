@@ -138,10 +138,10 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
               pointsToAdd = -15;
               break;
             case "rare":
-              pointsToAdd = 25;
+              pointsToAdd = 15;
               break;
             case "blue":
-              pointsToAdd = 50;
+              pointsToAdd = 30;
               break;
             case "orange":
               setGameOver(true);
@@ -206,9 +206,9 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
           <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
           {gameState === "menu" && (
   <div className="flex flex-col items-center justify-center h-full">
-    <Image src={rare} alt="Logo" width={200} height={200} className="mb-4" />
+    <Image src={coin} alt="Logo" width={200} height={200} className="mb-4" />
     <h1 className="text-3xl mb-4">Catch $PeGo!</h1>
-    <div className="flex gap-4">
+    <div className="flex flex-col gap-4">
       <button
         className="bg-blue-500 text-white px-6 py-2 rounded-md text-lg"
         onClick={() => setGameState("playing")}
@@ -237,9 +237,8 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
                   height: "20px",
                   backgroundColor: "white",
                   transform: "translateX(0)",
-                  bottom: "15%",
+                  bottom: "20%",
                   position: "absolute",
-                  border: "2px solid red",
                 }}
                 className="platform"
               />
