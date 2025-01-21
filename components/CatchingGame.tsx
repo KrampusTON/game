@@ -34,40 +34,6 @@ const objectImages: { [key: string]: StaticImageData } = {
   default: coin,
 };
 
-const generateObjectType = (): string => {
-  const randomType = Math.random();
-  if (randomType < 0.2) return "bomb";
-  if (randomType < 0.35) return "rare";
-  if (randomType < 0.45) return "blue";
-  if (randomType < 0.55) return "orange";
-  return "default";
-};
-
-const getObjectColor = (type: string): string => {
-  switch (type) {
-    case "bomb":
-      return "#ff0000";
-    case "rare":
-      return "#ffd700";
-    case "blue":
-      return "#0000ff";
-    case "orange":
-      return "#ffa500";
-    default:
-      return "#ffff00";
-  }
-};
-
-const generateObjectXPosition = (): number => {
-  const minX = 10; // Aby objekty neboli príliš blízko okrajom
-  const maxX = 90;
-  return Math.random() * (maxX - minX) + minX;
-};
-
-const objectSize = 4.5;
-const platformWidth = 20;
-const platformBottom = 85;
-
 export default function CatchingGame({ currentView, setCurrentView }: CatchingGameProps) {
   const { incrementPoints } = useGameStore();
   const [playerX, setPlayerX] = useState<number>(50);
@@ -80,19 +46,188 @@ export default function CatchingGame({ currentView, setCurrentView }: CatchingGa
   const [gameState, setGameState] = useState<string>("menu");
   const [collisionEffects, setCollisionEffects] = useState<CollisionEffect[]>([]);
 
+  useEffect(() => {
+    const element = document.body;
+
+    // Zablokuje predvolené správanie pri pohybe
+    const touchMoveHandler = (event: TouchEvent) => {
+      event.preventDefault();
+    };
+
+    // Zastaví šírenie udalostí pri dotyku
+    const touchStartHandler = (event: TouchEvent) => {
+      event.stopPropagation();
+    };
+
+    element.addEventListener("touchmove", touchMoveHandler, { passive: false });
+    element.addEventListener("touchstart", touchStartHandler);
+
+    return () => {
+      element.removeEventListener("touchmove", touchMoveHandler);
+      element.removeEventListener("touchstart", touchStartHandler);
+    };
+  }, []);
+
   const handleMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    e.preventDefault(); // Prevent default behavior
-    e.stopPropagation(); // Stop event propagation
+    if (e.touches.length > 1) return;
+    e.preventDefault();
+    e.stopPropagation();
     const touch = e.touches[0];
     const newX = (touch.clientX / window.innerWidth) * 100;
-    setPlayerX(Math.max(10, Math.min(90, newX))); // Constrain movement within bounds
+    setPlayerX(Math.max(10, Math.min(90, newX)));
   };
 
+  const generateObjectType = (): string => {
+    const randomType = Math.random();
+    if (randomType < 0.2) return "bomb";
+    if (randomType < 0.35) return "rare";
+    if (randomType < 0.45) return "blue";
+    if (randomType < 0.55) return "orange";
+    return "default";
+  };
+
+  const getObjectColor = (type: string): string => {
+    switch (type) {
+      case "bomb":
+        return "#ff0000";
+      case "rare":
+        return "#ffd700";
+      case "blue":
+        return "#0000ff";
+      case "orange":
+        return "#ffa500";
+      default:
+        return "#ffff00";
+    }
+  };
+
+  const objectSize = 4.5;
+  const platformWidth = 20;
+  const platformBottom = 85;
+
+  useEffect(() => {
+    if (gameState !== "playing" || gameOver) return;
+
+    const interval = setInterval(() => {
+      setFallingObjects((prev) =>
+        prev.length < 50
+          ? [
+              ...prev,
+              {
+                id: Date.now(),
+                x: Math.random() * 100,
+                y: 0,
+                type: generateObjectType(),
+                isCaught: false,
+              },
+            ]
+          : prev
+      );
+    }, spawnDelay);
+
+    return () => clearInterval(interval);
+  }, [spawnDelay, gameState, gameOver]);
+
+  useEffect(() => {
+    setFallingObjects((prev) =>
+      prev.filter((obj) => {
+        const onPlatform =
+          obj.y + objectSize / 2 >= platformBottom &&
+          obj.y - objectSize / 2 <= platformBottom + 2 &&
+          obj.x + objectSize / 2 >= playerX - platformWidth / 2 &&
+          obj.x - objectSize / 2 <= playerX + platformWidth / 2;
+
+        if (onPlatform) {
+          const effectX = (obj.x / 100) * window.innerWidth;
+          const platformPixelHeight = (platformBottom / 100) * window.innerHeight;
+          const effectY = platformPixelHeight - 30;
+
+          setCollisionEffects((prev) => [
+            ...prev,
+            {
+              id: Date.now(),
+              x: effectX,
+              y: effectY,
+              color: getObjectColor(obj.type),
+            },
+          ]);
+
+          if (navigator.vibrate) {
+            navigator.vibrate(50);
+          }
+
+          let pointsToAdd = 0;
+          switch (obj.type) {
+            case "bomb":
+              pointsToAdd = -15;
+              break;
+            case "rare":
+              pointsToAdd = 15;
+              break;
+            case "blue":
+              pointsToAdd = 30;
+              break;
+            case "orange":
+              setGameOver(true);
+              setGameState("gameOver");
+              break;
+            default:
+              pointsToAdd = 10;
+          }
+
+          if (!gameOver) {
+            setScore((prevScore) => prevScore + pointsToAdd);
+            incrementPoints(pointsToAdd);
+          }
+
+          return false;
+        }
+
+        return obj.y <= 100;
+      })
+    );
+  }, [playerX, incrementPoints, gameOver]);
+
+  useEffect(() => {
+    if (gameState !== "playing" || gameOver) return;
+
+    const interval = setInterval(() => {
+      setFallingObjects((prev) =>
+        prev.map((obj) => ({ ...obj, y: obj.y + fallingSpeed })).filter((obj) => obj.y <= 100)
+      );
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [fallingSpeed, gameState, gameOver]);
+
+  useEffect(() => {
+    if (gameState !== "playing" || gameOver) return;
+
+    let lastUpdate = timeLeft;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          setGameOver(true);
+          setGameState("gameOver");
+          return 0;
+        }
+
+        if (prev % 5 === 0 && lastUpdate !== prev) {
+          lastUpdate = prev;
+          setFallingSpeed((speed) => Math.min(speed + 0.5, 10));
+          setSpawnDelay((delay) => Math.max(delay - 50, 500));
+        }
+
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [timeLeft, gameState, gameOver]);
+
   return (
-    <div
-      className="fixed inset-0 bg-black overflow-hidden"
-      style={{ touchAction: "none" }} // Disable default touch gestures
-    >
+    <div className="fixed inset-0 bg-black overflow-hidden" style={{ touchAction: "none" }}>
       <div className="w-full h-full flex justify-center items-center">
         <div className="w-full bg-black text-white h-screen font-bold flex flex-col max-w-xl relative">
           <TopInfoSection isGamePage={true} setCurrentView={setCurrentView} />
